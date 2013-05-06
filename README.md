@@ -23,6 +23,10 @@ http://www.myget.org/F/loresoft/
 
 ##Configuration Syntax
 
+    <extensions>
+      <add assembly="NLog.Mongo"/>
+    </extensions>
+
     <targets>
       <target xsi:type="Mongo"
               name="String"
@@ -68,12 +72,26 @@ _includeDefaults_ - Specifies if the default document is created when writing to
 _field_ - Specifies a root level document field. There can be multiple fields specified.
 
 _property_ - Specifies a dictionary property on the Properties field. There can be multiple properties specified.
-.
-##Document Structure
 
-###Default Document
+##Examples
 
-The following is a json example of the default document structure.  To not include the default structure, set _includeDefaults_ to false.
+###Default Configuration with Extra Properties
+
+####NLog.config target
+
+    <target xsi:type="Mongo"
+            name="mongoDefaul"
+            connectionString="mongodb://localhost/Logging"
+            collectionName="DefaultLog"
+            cappedCollectionSize="26214400">
+      <property name="ThreadID" layout="${threadid}" />
+      <property name="ThreadName" layout="${threadname}" />
+      <property name="ProcessID" layout="${processid}" />
+      <property name="ProcessName" layout="${processname:fullName=true}" />
+      <property name="UserName" layout="${windows-identity}" />
+    </target>
+
+####Default Output JSON
 
     {
         "_id" : ObjectId("5184219b545eb455aca34390"),
@@ -100,4 +118,41 @@ The following is a json example of the default document structure.  To not inclu
             "CallerFilePath" : "c:\\Projects\\github\\NLog.Mongo\\Source\\NLog.Mongo.ConsoleTest\\Program.cs",
             "CallerLineNumber" : "43"
         }
+    }
+
+
+###Complete Custom Document
+
+####NLog.config target
+
+    <target xsi:type="Mongo"
+            name="mongoCustom"
+            includeDefaults="false"
+            connectionString="mongodb://localhost/Logging"
+            collectionName="CustomLog"
+            cappedCollectionSize="26214400">
+      <field name="Date" layout="${longdate}" />
+      <field name="Level" layout="${level}"/>
+      <field name="Message" layout="${message}" />
+      <field name="Logger" layout="${logger}"/>
+      <field name="Exception" layout="${exception:format=tostring}" />
+      <field name="ThreadID" layout="${threadid}" />
+      <field name="ThreadName" layout="${threadname}" />
+      <field name="ProcessID" layout="${processid}" />
+      <field name="ProcessName" layout="${processname:fullName=true}" />
+      <field name="UserName" layout="${windows-identity}" />
+    </target>
+
+####Custom Output JSON
+
+    {
+        "_id" : ObjectId("5187abc2545eb467ecce9184"),
+        "Date" : "2013-05-06 08:10:26.5019",
+        "Level" : "Debug",
+        "Message" : "Sample debug message",
+        "Logger" : "NLog.Mongo.ConsoleTest.Program",
+        "ThreadID" : "9",
+        "ProcessID" : "26604",
+        "ProcessName" : "C:\\Projects\\github\\NLog.Mongo\\Source\\NLog.Mongo.ConsoleTest\\bin\\Debug\\v4.5\\NLog.Mongo.ConsoleTest.exe",
+        "UserName" : "pwelter"
     }
