@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <PackageFolder>$(MSBuildProjectDirectory)\Package</PackageFolder>
+    <TestFolder>$(MSBuildProjectDirectory)\Tests</TestFolder>
+
+    <LibraryFolder>$(MSBuildProjectDirectory)\Libraries</LibraryFolder>
+    <SourceFolder>$(MSBuildProjectDirectory)\Source</SourceFolder>
+
+    <ExcludeFolders>.git;.svn;obj;App_Data;.settings;Logs;</ExcludeFolders>
+    <ExcludeFiles>*.resx;*.csproj;*.webinfo;*.log;*.txt;*.cs;*.user;*.vspscc;*.md;packages.config</ExcludeFiles>
+
+    <MSBuildCommunityTasksPath>$(LibraryFolder)</MSBuildCommunityTasksPath>
+  </PropertyGroup>
+
+  <Import Project="$(MSBuildCommunityTasksPath)\MSBuild.Community.Tasks.targets"/>
+
+  <!-- Version Number -->
+  <PropertyGroup Condition=" '$(BUILD_NUMBER)' == '' ">
+    <Version>1.0.0.0</Version>
+    <FileVersion>1.0.0.0</FileVersion>
+    <InformationalVersion>1.0.0.0</InformationalVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(BUILD_NUMBER)' != '' ">
+    <!-- TeamCity Build Number -->
+    <Version>1.0.0.0</Version>
+    <FileVersion>$(BUILD_NUMBER)</FileVersion>
+    <InformationalVersion>$(BUILD_NUMBER)</InformationalVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(BuildConfiguration)' == '' ">
+    <BuildConfiguration>Release</BuildConfiguration>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Year>2012</Year>
+  </PropertyGroup>
+
+  <Target Name="Clean">
+    <DeleteTree Directories="**\obj\**;**\bin\**" />
+    <DeleteTree Directories="$(PackageFolder)" ContinueOnError="true" />
+    <DeleteTree Directories="$(TestFolder)" ContinueOnError="true" />
+  </Target>
+
+  <Target Name="Version">
+    <Time>
+      <Output TaskParameter="Year" PropertyName="Year" />
+    </Time>
+
+    <Message Text="Version: $(Version)"/>
+
+    <Attrib Files="$(SourceFolder)\GlobalAssemblyInfo.cs" ReadOnly="False" />
+
+    <AssemblyInfo CodeLanguage="CS"
+                  OutputFile="$(SourceFolder)\GlobalAssemblyInfo.cs"
+                  GenerateClass="true"
+                  AssemblyProduct="NLog.Mongo"
+                  AssemblyCompany="LoreSoft"
+                  AssemblyCopyright="Copyright © $(Year) LoreSoft"
+                  AssemblyConfiguration="$(BuildConfiguration)"
+                  AssemblyVersion="$(Version)"
+                  AssemblyFileVersion="$(FileVersion)"
+                  AssemblyInformationalVersion="$(InformationalVersion)" />
+  </Target>
+
+  <Target Name="Compile" DependsOnTargets="Clean;Version">
+    <!-- build for .net 4.5 -->
+    <MSBuild Projects="$(SourceFolder)\NLog.Mongo.netfx45.sln"
+             Properties="Configuration=$(BuildConfiguration)"/>
+
+    <!-- build for .net 4.0 -->
+    <MSBuild Projects="$(SourceFolder)\NLog.Mongo.netfx40.sln"
+             Properties="Configuration=$(BuildConfiguration)"/>
+
+  </Target>
+
+  <Target Name="Package" DependsOnTargets="Compile">
+    <!-- NLog.Mongo -->
+    <RoboCopy SourceFolder="$(SourceFolder)\NLog.Mongo\bin"
+              DestinationFolder="$(PackageFolder)"
+              Subdirectories="true"
+              ExcludeFolders="$(ExcludeFolders)"
+              ExcludeFiles="$(ExcludeFiles)" />
+
+    <!-- Test Files -->
+    <MakeDir Directories="$(TestFolder)" />
+
+    <CreateItem Include="$(SourceFolder)\**\*.Tests\bin\$(BuildConfiguration)\*.*">
+      <Output TaskParameter="Include" ItemName="TestFiles" />
+    </CreateItem>
+
+    <Copy SourceFiles="@(TestFiles)"
+          DestinationFolder="$(TestFolder)" />
+  </Target>
+
+
+  <Target Name="Build">
+    <CallTarget Targets="Package" />
+  </Target>
+
+</Project>

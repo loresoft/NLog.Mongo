@@ -18,14 +18,17 @@ using NLog.Targets;
 
 namespace NLog.Mongo
 {
+    /// <summary>
+    /// NLog message target for MongoDB.
+    /// </summary>
     [Target("Mongo")]
     public class MongoTarget : Target
     {
-        private static readonly object _collectionLock = new object();
-        private static MongoCollection _mongoCollection = null;
-
         private static readonly ConcurrentDictionary<string, MongoCollection> _collectionCache = new ConcurrentDictionary<string, MongoCollection>();
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MongoTarget"/> class.
+        /// </summary>
         public MongoTarget()
         {
             Fields = new List<MongoField>();
@@ -33,27 +36,81 @@ namespace NLog.Mongo
             IncludeDefaults = true;
         }
 
+        /// <summary>
+        /// Gets the fields collection.
+        /// </summary>
+        /// <value>
+        /// The fields.
+        /// </value>
         [ArrayParameter(typeof(MongoField), "field")]
         public IList<MongoField> Fields { get; private set; }
 
+        /// <summary>
+        /// Gets the properties collection.
+        /// </summary>
+        /// <value>
+        /// The properties.
+        /// </value>
         [ArrayParameter(typeof(MongoField), "property")]
         public IList<MongoField> Properties { get; private set; }
 
 
+        /// <summary>
+        /// Gets or sets the connection string name string.
+        /// </summary>
+        /// <value>
+        /// The connection name string.
+        /// </value>
         public string ConnectionString { get; set; }
 
+        /// <summary>
+        /// Gets or sets the name of the connection.
+        /// </summary>
+        /// <value>
+        /// The name of the connection.
+        /// </value>
         public string ConnectionName { get; set; }
 
 
+        /// <summary>
+        /// Gets or sets a value indicating whether to use the default document format.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> to use the default document format; otherwise, <c>false</c>.
+        /// </value>
         public bool IncludeDefaults { get; set; }
 
 
+        /// <summary>
+        /// Gets or sets the name of the collection.
+        /// </summary>
+        /// <value>
+        /// The name of the collection.
+        /// </value>
         public string CollectionName { get; set; }
 
+        /// <summary>
+        /// Gets or sets the size in bytes of the capped collection.
+        /// </summary>
+        /// <value>
+        /// The size of the capped collection.
+        /// </value>
         public long? CappedCollectionSize { get; set; }
 
+        /// <summary>
+        /// Gets or sets the capped collection max items.
+        /// </summary>
+        /// <value>
+        /// The capped collection max items.
+        /// </value>
         public long? CappedCollectionMaxItems { get; set; }
 
+
+        /// <summary>
+        /// Initializes the target. Can be used by inheriting classes
+        /// to initialize logging.
+        /// </summary>
+        /// <exception cref="NLog.NLogConfigurationException">Can not resolve MongoDB ConnectionString. Please make sure the ConnectionString property is set.</exception>
         protected override void InitializeTarget()
         {
             base.InitializeTarget();
@@ -66,6 +123,12 @@ namespace NLog.Mongo
 
         }
 
+        /// <summary>
+        /// Writes an array of logging events to the log target. By default it iterates on all
+        /// events and passes them to "Write" method. Inheriting classes can use this method to
+        /// optimize batch writes.
+        /// </summary>
+        /// <param name="logEvents">Logging events to be written out.</param>
         protected override void Write(AsyncLogEventInfo[] logEvents)
         {
             if (logEvents.Length == 0)
@@ -95,6 +158,11 @@ namespace NLog.Mongo
             }
         }
 
+        /// <summary>
+        /// Writes logging event to the log target.
+        /// classes.
+        /// </summary>
+        /// <param name="logEvent">Logging event to be written out.</param>
         protected override void Write(LogEventInfo logEvent)
         {
             try
@@ -134,13 +202,13 @@ namespace NLog.Mongo
 
         private void AddDefaults(BsonDocument document, LogEventInfo logEvent)
         {
-            document.Add("TimeStamp", new BsonDateTime(logEvent.TimeStamp));
+            document.Add("Date", new BsonDateTime(logEvent.TimeStamp));
 
             if (logEvent.Level != null)
                 document.Add("Level", new BsonString(logEvent.Level.Name));
 
             if (logEvent.LoggerName != null)
-                document.Add("LoggerName", new BsonString(logEvent.LoggerName));
+                document.Add("Logger", new BsonString(logEvent.LoggerName));
 
             if (logEvent.FormattedMessage != null)
                 document.Add("Message", new BsonString(logEvent.FormattedMessage));
@@ -183,8 +251,12 @@ namespace NLog.Mongo
 
         private BsonValue CreateException(Exception exception)
         {
+            if (exception == null)
+                return BsonNull.Value;
+
             var document = new BsonDocument();
             document.Add("Message", new BsonString(exception.Message));
+            document.Add("BaseMessage", new BsonString(exception.GetBaseException().Message));
             document.Add("Text", new BsonString(exception.ToString()));
             document.Add("Type", new BsonString(exception.GetType().ToString()));
 
