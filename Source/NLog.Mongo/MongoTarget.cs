@@ -283,7 +283,12 @@ namespace NLog.Mongo
         private MongoCollection GetCollection()
         {
             // cache mongo collection based on target name.
-            return _collectionCache.GetOrAdd(Name, k =>
+            string key = string.Format("k|{0}|{1}|{2}", 
+                ConnectionName ?? string.Empty, 
+                ConnectionString ?? string.Empty, 
+                CollectionName ?? string.Empty);
+
+            return _collectionCache.GetOrAdd(key, k =>
             {
                 // create collection
                 var mongoUrl = new MongoUrl(ConnectionString);

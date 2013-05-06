@@ -43,6 +43,7 @@ namespace NLog.Mongo.ConsoleTest
                     .Write();
             }
 
+            Console.ReadLine();
         }
     }
 }
