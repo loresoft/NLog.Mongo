@@ -15,7 +15,7 @@
     <tags>NLog Logging</tags>
     <dependencies>
       <dependency id="NLog" version="2.1.0" />
-      <dependency id="mongocsharpdriver" version="1.8" />
+      <dependency id="mongocsharpdriver" version="1.9" />
     </dependencies>
   </metadata>
   <files>

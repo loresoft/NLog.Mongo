@@ -35,7 +35,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Year>2012</Year>
+    <Year>2014</Year>
   </PropertyGroup>
 
   <Target Name="Clean">
@@ -51,7 +51,6 @@
 
     <Message Text="Version: $(Version)"/>
 
-    <Attrib Files="$(SourceFolder)\GlobalAssemblyInfo.cs" ReadOnly="False" />
 
     <AssemblyInfo CodeLanguage="CS"
                   OutputFile="$(SourceFolder)\GlobalAssemblyInfo.cs"

@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30110.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NLog.Mongo.netfx40", "NLog.Mongo\NLog.Mongo.netfx40.csproj", "{97D08F95-F710-4AF1-A49D-D2CFF770E764}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NLog.Mongo.ConsoleTest.netfx40", "NLog.Mongo.ConsoleTest\NLog.Mongo.ConsoleTest.netfx40.csproj", "{10901848-3067-4CB7-8B45-5FB1903CF57D}"
