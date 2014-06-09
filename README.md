@@ -80,7 +80,7 @@ _property_ - Specifies a dictionary property on the Properties field. There can 
 ####NLog.config target
 
     <target xsi:type="Mongo"
-            name="mongoDefaul"
+            name="mongoDefault"
             connectionString="mongodb://localhost/Logging"
             collectionName="DefaultLog"
             cappedCollectionSize="26214400">
