@@ -51,7 +51,7 @@
       <HintPath>..\packages\NLog.3.0.0.0\lib\net45\NLog.dll</HintPath>
     </Reference>
     <Reference Include="NLog.Fluent">
-      <HintPath>..\packages\NLog.Fluent.2.1.0.24\lib\net45\NLog.Fluent.dll</HintPath>
+      <HintPath>..\packages\NLog.Fluent.3.0.0.28\lib\net45\NLog.Fluent.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

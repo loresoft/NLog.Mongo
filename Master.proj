@@ -2,46 +2,47 @@
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
-    <PackageFolder>$(MSBuildProjectDirectory)\Package</PackageFolder>
-    <TestFolder>$(MSBuildProjectDirectory)\Tests</TestFolder>
-
-    <LibraryFolder>$(MSBuildProjectDirectory)\Libraries</LibraryFolder>
+    <BuildFolder>$(MSBuildProjectDirectory)\Build</BuildFolder>
+    <ToolFolder>$(MSBuildProjectDirectory)\Tools</ToolFolder>
     <SourceFolder>$(MSBuildProjectDirectory)\Source</SourceFolder>
 
-    <ExcludeFolders>.git;.svn;obj;App_Data;.settings;Logs;</ExcludeFolders>
-    <ExcludeFiles>*.resx;*.csproj;*.webinfo;*.log;*.txt;*.cs;*.user;*.vspscc;*.md;packages.config</ExcludeFiles>
-
-    <MSBuildCommunityTasksPath>$(LibraryFolder)</MSBuildCommunityTasksPath>
+    <MSBuildCommunityTasksPath>$(ToolFolder)\MSBuildTasks\tools</MSBuildCommunityTasksPath>
   </PropertyGroup>
 
   <Import Project="$(MSBuildCommunityTasksPath)\MSBuild.Community.Tasks.targets"/>
 
   <!-- Version Number -->
-  <PropertyGroup Condition=" '$(BUILD_NUMBER)' == '' ">
-    <Version>1.0.0.0</Version>
-    <FileVersion>1.0.0.0</FileVersion>
-    <InformationalVersion>1.0.0.0</InformationalVersion>
-  </PropertyGroup>
-
-  <PropertyGroup Condition=" '$(BUILD_NUMBER)' != '' ">
-    <!-- TeamCity Build Number -->
-    <Version>1.0.0.0</Version>
-    <FileVersion>$(BUILD_NUMBER)</FileVersion>
-    <InformationalVersion>$(BUILD_NUMBER)</InformationalVersion>
-  </PropertyGroup>
-
-  <PropertyGroup Condition=" '$(BuildConfiguration)' == '' ">
-    <BuildConfiguration>Release</BuildConfiguration>
-  </PropertyGroup>
-
   <PropertyGroup>
-    <Year>2014</Year>
+    <BuildNumber Condition=" '$(APPVEYOR_BUILD_NUMBER)' != '' ">$(APPVEYOR_BUILD_NUMBER)</BuildNumber>
+    <BuildNumber Condition=" '$(BUILD_NUMBER)' != '' ">$(BUILD_NUMBER)</BuildNumber>
+    <BuildNumber Condition=" '$(BuildNumber)' == '' ">0</BuildNumber>
+
+    <BuildConfiguration  Condition=" '$(BuildConfiguration)' == '' ">Release</BuildConfiguration>
+
+    <Major Condition=" '$(Major)' == '' ">3</Major>
+    <Minor Condition=" '$(Minor)' == '' ">0</Minor>
+    <Patch Condition=" '$(Patch)' == '' ">0</Patch>
+
+    <!-- 
+      With prerelease
+      <Prerelease>-alpha$(BuildNumber)</Prerelease>
+      
+      Empty for non-prerelease
+      <Prerelease></Prerelease>
+    -->
+    <Prerelease Condition=" '$(Prerelease)' == '' ">.$(BuildNumber)</Prerelease>
+    <Metadata>+build.$(BuildNumber)</Metadata>
+
+    <AssemblyVersion>$(Major).0.0.0</AssemblyVersion>
+    <AssemblyFileVersion>$(Major).$(Minor).$(Patch).$(BuildNumber)</AssemblyFileVersion>
+    <!-- Semantic Versioning -->
+    <AssemblyInformationalVersion>$(Major).$(Minor).$(Patch)$(Prerelease)$(Metadata)</AssemblyInformationalVersion>
+    <PackageVersion>$(Major).$(Minor).$(Patch)$(Prerelease)</PackageVersion>
   </PropertyGroup>
 
   <Target Name="Clean">
     <DeleteTree Directories="**\obj\**;**\bin\**" />
-    <DeleteTree Directories="$(PackageFolder)" ContinueOnError="true" />
-    <DeleteTree Directories="$(TestFolder)" ContinueOnError="true" />
+    <DeleteTree Directories="$(BuildFolder)" ContinueOnError="true" />
   </Target>
 
   <Target Name="Version">
@@ -49,7 +50,7 @@
       <Output TaskParameter="Year" PropertyName="Year" />
     </Time>
 
-    <Message Text="Version: $(Version)"/>
+    <Message Text="Version: $(AssemblyInformationalVersion)"/>
 
 
     <AssemblyInfo CodeLanguage="CS"
@@ -61,7 +62,9 @@
                   AssemblyConfiguration="$(BuildConfiguration)"
                   AssemblyVersion="$(Version)"
                   AssemblyFileVersion="$(FileVersion)"
-                  AssemblyInformationalVersion="$(InformationalVersion)" />
+                  AssemblyInformationalVersion="$(InformationalVersion)"
+                  AssemblyTrademark=""
+                  ComVisible="false"/>
   </Target>
 
   <Target Name="Compile" DependsOnTargets="Clean;Version">
@@ -72,26 +75,43 @@
     <!-- build for .net 4.0 -->
     <MSBuild Projects="$(SourceFolder)\NLog.Mongo.netfx40.sln"
              Properties="Configuration=$(BuildConfiguration)"/>
-
   </Target>
 
   <Target Name="Package" DependsOnTargets="Compile">
-    <!-- NLog.Mongo -->
-    <RoboCopy SourceFolder="$(SourceFolder)\NLog.Mongo\bin"
-              DestinationFolder="$(PackageFolder)"
-              Subdirectories="true"
-              ExcludeFolders="$(ExcludeFolders)"
-              ExcludeFiles="$(ExcludeFiles)" />
+    <MakeDir Directories="$(BuildFolder)" Condition="!EXISTS($(BuildFolder))" />
 
-    <!-- Test Files -->
-    <MakeDir Directories="$(TestFolder)" />
+    <ItemGroup>
+      <NuGetFiles Include="$(SourceFolder)\**\*.nuspec"/>
+    </ItemGroup>
 
-    <CreateItem Include="$(SourceFolder)\**\*.Tests\bin\$(BuildConfiguration)\*.*">
-      <Output TaskParameter="Include" ItemName="TestFiles" />
-    </CreateItem>
+    <NuGetPack ToolPath="$(ToolFolder)"
+               File="%(NuGetFiles.Identity)"
+               OutputDirectory="$(BuildFolder)"
+               Version="$(PackageVersion)"
+               Symbols="true"  />
+  </Target>
 
-    <Copy SourceFiles="@(TestFiles)"
-          DestinationFolder="$(TestFolder)" />
+  <Target Name="Publish" DependsOnTargets="Package">
+
+    <!-- 
+      Requires API key to be set ...
+      nuget.exe setapikey <myget-key> -Source https://www.myget.org/F/loresoft/
+    -->
+
+    <ItemGroup>
+      <NuGetPackages Include="$(BuildFolder)\*.nupkg" Exclude="$(BuildFolder)\*.symbols.nupkg"/>
+      <NuGetSymbols Include="$(BuildFolder)\*.symbols.nupkg" />
+    </ItemGroup>
+
+    <!-- Push to MyGet on Build -->
+    <NuGetPush ToolPath="$(ToolFolder)"
+               File="%(NuGetPackages.Identity)"
+               Source="https://www.myget.org/F/loresoft/" />
+
+    <!-- Push to Symbols on Build -->
+    <NuGetPush ToolPath="$(ToolFolder)"
+               File="%(NuGetSymbols.Identity)"
+               Source="https://nuget.symbolsource.org/MyGet/loresoft" />
   </Target>
 
 

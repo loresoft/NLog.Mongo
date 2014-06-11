@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30501.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NLog.Mongo.netfx45", "NLog.Mongo\NLog.Mongo.netfx45.csproj", "{97D08F95-F710-4AF1-A49D-D2CFF770E764}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NLog.Mongo.ConsoleTest.netfx45", "NLog.Mongo.ConsoleTest\NLog.Mongo.ConsoleTest.netfx45.csproj", "{10901848-3067-4CB7-8B45-5FB1903CF57D}"
@@ -15,7 +17,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8B9F6041-4767-4A4E-90DA-2C10E56A4EA8}"
 	ProjectSection(SolutionItems) = preProject
 		..\Master.proj = ..\Master.proj
-		..\NLog.Mongo.nuspec = ..\NLog.Mongo.nuspec
 		..\README.md = ..\README.md
 	EndProjectSection
 EndProject
