@@ -1,5 +1,5 @@
-<?xml version="1.0"?>
-<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>NLog.Mongo</id>
     <version>3.0.0</version>
@@ -14,7 +14,7 @@
     <language>en-US</language>
     <tags>NLog Logging MongoDB</tags>
     <dependencies>
-      <dependency id="NLog" version="3.0.0" />
+      <dependency id="NLog" version="3.1.0.0" />
       <dependency id="mongocsharpdriver" version="1.9" />
     </dependencies>
   </metadata>
