@@ -122,7 +122,7 @@
   <Target Name="Refresh">
     <!-- Update NuGet dependencies to match package version -->
 
-    <!-- Autofac -->
+    <!-- NLog -->
     <XmlRead XmlFileName="$(SourceFolder)\NLog.Mongo\packages.config"
              XPath="/packages/package[@id='NLog']/@version">
       <Output TaskParameter="Value" ItemName="NLogVersion" />
@@ -134,6 +134,19 @@
                Prefix="d" Namespace="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd"
                XPath="/d:package/d:metadata/d:dependencies/d:dependency[@id='NLog']/@version"
                Value="@(NLogVersion)" />
+    
+    <!-- MongoDB -->
+    <XmlRead XmlFileName="$(SourceFolder)\NLog.Mongo\packages.config"
+             XPath="/packages/package[@id='mongocsharpdriver']/@version">
+      <Output TaskParameter="Value" ItemName="MongoCSharpDriverVersion" />
+    </XmlRead>
+
+    <Message Text="MongoCSharpDriverVersion Version: @(MongoCSharpDriverVersion)"/>
+
+    <XmlUpdate XmlFileName="$(SourceFolder)\NLog.Mongo\NLog.Mongo.nuspec"
+               Prefix="d" Namespace="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd"
+               XPath="/d:package/d:metadata/d:dependencies/d:dependency[@id='mongocsharpdriver']/@version"
+               Value="@(MongoCSharpDriverVersion)" />
 
   </Target>
 
