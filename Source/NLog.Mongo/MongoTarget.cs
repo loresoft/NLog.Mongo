@@ -6,9 +6,8 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.WindowsAzure;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.Builders;
@@ -54,7 +53,6 @@ namespace NLog.Mongo
         [ArrayParameter(typeof(MongoField), "property")]
         public IList<MongoField> Properties { get; private set; }
 
-
         /// <summary>
         /// Gets or sets the connection string name string.
         /// </summary>
@@ -71,7 +69,6 @@ namespace NLog.Mongo
         /// </value>
         public string ConnectionName { get; set; }
 
-
         /// <summary>
         /// Gets or sets a value indicating whether to use the default document format.
         /// </summary>
@@ -79,7 +76,6 @@ namespace NLog.Mongo
         ///   <c>true</c> to use the default document format; otherwise, <c>false</c>.
         /// </value>
         public bool IncludeDefaults { get; set; }
-
 
         /// <summary>
         /// Gets or sets the name of the collection.
@@ -105,7 +101,6 @@ namespace NLog.Mongo
         /// </value>
         public long? CappedCollectionMaxItems { get; set; }
 
-
         /// <summary>
         /// Initializes the target. Can be used by inheriting classes
         /// to initialize logging.
@@ -120,7 +115,6 @@ namespace NLog.Mongo
 
             if (string.IsNullOrEmpty(ConnectionString))
                 throw new NLogConfigurationException("Can not resolve MongoDB ConnectionString. Please make sure the ConnectionString property is set.");
-
         }
 
         /// <summary>
@@ -180,7 +174,6 @@ namespace NLog.Mongo
             }
         }
 
-
         private BsonDocument CreateDocument(LogEventInfo logEvent)
         {
             var document = new BsonDocument();
@@ -215,8 +208,6 @@ namespace NLog.Mongo
 
             if (logEvent.Exception != null)
                 document.Add("Exception", CreateException(logEvent.Exception));
-
-
         }
 
         private void AddProperties(BsonDocument document, LogEventInfo logEvent)
@@ -254,13 +245,15 @@ namespace NLog.Mongo
             if (exception == null)
                 return BsonNull.Value;
 
-            var document = new BsonDocument();
-            document.Add("Message", new BsonString(exception.Message));
-            document.Add("BaseMessage", new BsonString(exception.GetBaseException().Message));
-            document.Add("Text", new BsonString(exception.ToString()));
-            document.Add("Type", new BsonString(exception.GetType().ToString()));
+            var document = new BsonDocument
+            {
+                {"Message", new BsonString(exception.Message)},
+                {"BaseMessage", new BsonString(exception.GetBaseException().Message)},
+                {"Text", new BsonString(exception.ToString())},
+                {"Type", new BsonString(exception.GetType().ToString())}
+            };
 
-            var external = exception as ExternalException;
+	        var external = exception as ExternalException;
             if (external != null)
                 document.Add("ErrorCode", new BsonInt32(external.ErrorCode));
 
@@ -279,13 +272,12 @@ namespace NLog.Mongo
             return document;
         }
 
-
         private MongoCollection GetCollection()
         {
             // cache mongo collection based on target name.
-            string key = string.Format("k|{0}|{1}|{2}", 
-                ConnectionName ?? string.Empty, 
-                ConnectionString ?? string.Empty, 
+            string key = string.Format("k|{0}|{1}|{2}",
+                ConnectionName ?? string.Empty,
+                ConnectionString ?? string.Empty,
                 CollectionName ?? string.Empty);
 
             return _collectionCache.GetOrAdd(key, k =>
@@ -315,11 +307,14 @@ namespace NLog.Mongo
             });
         }
 
-
         private static string GetConnectionString(string connectionName)
         {
             if (connectionName == null)
                 throw new ArgumentNullException("connectionName");
+
+            string cloudSetting = CloudConfigurationManager.GetSetting(connectionName);
+            if (!string.IsNullOrEmpty(cloudSetting))
+                return cloudSetting;
 
             var settings = ConfigurationManager.ConnectionStrings[connectionName];
             if (settings == null)
@@ -333,6 +328,5 @@ namespace NLog.Mongo
 
             return settings.ConnectionString;
         }
-
     }
 }
