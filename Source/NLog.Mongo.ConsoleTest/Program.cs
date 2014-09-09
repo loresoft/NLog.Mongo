@@ -1,16 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using NLog.Fluent;
+using System;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using NLog.Fluent;
 
 namespace NLog.Mongo.ConsoleTest
 {
     class Program
     {
-        private static readonly NLog.Logger _logger = NLog.LogManager.GetCurrentClassLogger();
+        private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
         static void Main(string[] args)
         {
             int k = 42;
