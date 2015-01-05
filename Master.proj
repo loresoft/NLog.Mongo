@@ -20,7 +20,7 @@
     <BuildConfiguration  Condition=" '$(BuildConfiguration)' == '' ">Release</BuildConfiguration>
 
     <Major Condition=" '$(Major)' == '' ">3</Major>
-    <Minor Condition=" '$(Minor)' == '' ">0</Minor>
+    <Minor Condition=" '$(Minor)' == '' ">2</Minor>
     <Patch Condition=" '$(Patch)' == '' ">0</Patch>
 
     <!-- 

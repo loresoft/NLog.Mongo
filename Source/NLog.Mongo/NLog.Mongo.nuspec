@@ -14,7 +14,7 @@
     <language>en-US</language>
     <tags>NLog Logging MongoDB</tags>
     <dependencies>
-      <dependency id="NLog" version="3.1.0.0" />
+      <dependency id="NLog" version="3.2.0.0" />
       <dependency id="mongocsharpdriver" version="1.9.2" />
     </dependencies>
   </metadata>
