@@ -61,6 +61,7 @@
     <Compile Include="..\GlobalAssemblyInfo.cs">
       <Link>GlobalAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="MongoConvert.cs" />
     <Compile Include="MongoField.cs" />
     <Compile Include="MongoTarget.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

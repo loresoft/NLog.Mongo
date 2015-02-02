@@ -1,0 +1,17 @@
+version: 3.2.0.{build}
+environment:
+  Major: 3
+  Minor: 2
+  Revision: 0
+configuration: Release
+before_build:
+- .\bootstrap.cmd
+build:
+  project: master.proj
+  verbosity: minimal
+test: off
+artifacts:
+- path: Build\*.nupkg
+deploy:
+- provider: Environment
+  name: MyGet

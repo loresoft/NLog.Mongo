@@ -190,8 +190,8 @@ namespace NLog.Mongo
             // extra fields
             foreach (var field in Fields)
             {
-                var value = field.Layout.Render(logEvent);
-                if (!string.IsNullOrWhiteSpace(value))
+                var value = GetValue(field, logEvent);
+                if (value != null)
                     document[field.Name] = value;
             }
 
@@ -225,10 +225,10 @@ namespace NLog.Mongo
             foreach (var field in Properties)
             {
                 string key = field.Name;
-                string value = field.Layout.Render(logEvent);
+                var value = GetValue(field, logEvent);
 
-                if (!string.IsNullOrEmpty(value))
-                    propertiesDocument[key] = new BsonString(value);
+                if (value != null)
+                    propertiesDocument[key] = value;
             }
 
             var properties = logEvent.Properties ?? Enumerable.Empty<KeyValuePair<object, object>>();
@@ -279,6 +279,43 @@ namespace NLog.Mongo
             return document;
         }
 
+
+        private BsonValue GetValue(MongoField field, LogEventInfo logEvent)
+        {
+            var value = field.Layout.Render(logEvent);
+            if (string.IsNullOrWhiteSpace(value))
+                return null;
+
+            value = value.Trim();
+            
+            if (string.IsNullOrEmpty(field.BsonType) 
+                || string.Equals(field.BsonType, "String", StringComparison.OrdinalIgnoreCase))
+                return new BsonString(value);
+
+            
+            BsonValue bsonValue;
+            if (string.Equals(field.BsonType, "Boolean", StringComparison.OrdinalIgnoreCase)
+                && MongoConvert.TryBoolean(value, out bsonValue))
+                return bsonValue;
+
+            if (string.Equals(field.BsonType, "DateTime", StringComparison.OrdinalIgnoreCase)
+                && MongoConvert.TryDateTime(value, out bsonValue))
+                return bsonValue;
+
+            if (string.Equals(field.BsonType, "Double", StringComparison.OrdinalIgnoreCase)
+                && MongoConvert.TryDouble(value, out bsonValue))
+                return bsonValue;
+            
+            if (string.Equals(field.BsonType, "Int32", StringComparison.OrdinalIgnoreCase)
+                && MongoConvert.TryInt32(value, out bsonValue))
+                return bsonValue;
+            
+            if (string.Equals(field.BsonType, "Int64", StringComparison.OrdinalIgnoreCase)
+                && MongoConvert.TryInt64(value, out bsonValue))
+                return bsonValue;
+
+            return new BsonString(value);
+        }
 
         private MongoCollection GetCollection()
         {

@@ -39,10 +39,10 @@ In your Package Manager settings add the following package source for developmen
               includeDefaults="Boolean">
         
         <!-- repeated --> 
-        <field name="String" Layout="Layout" />
+        <field name="String" layout="Layout" bsonType="Boolean|DateTime|Double|Int32|Int64|String"  />
         
         <!-- repeated --> 
-        <property name="String" Layout="Layout" />
+        <property name="String" layout="Layout" bsonType="Boolean|DateTime|Double|Int32|Int64|String"  />
       </target>
     </targets>
 
@@ -85,9 +85,9 @@ _property_ - Specifies a dictionary property on the Properties field. There can 
             connectionString="mongodb://localhost/Logging"
             collectionName="DefaultLog"
             cappedCollectionSize="26214400">
-      <property name="ThreadID" layout="${threadid}" />
+      <property name="ThreadID" layout="${threadid}" bsonType="Int32" />
       <property name="ThreadName" layout="${threadname}" />
-      <property name="ProcessID" layout="${processid}" />
+      <property name="ProcessID" layout="${processid}" bsonType="Int32" />
       <property name="ProcessName" layout="${processname:fullName=true}" />
       <property name="UserName" layout="${windows-identity}" />
     </target>
@@ -110,8 +110,8 @@ _property_ - Specifies a dictionary property on the Properties field. There can 
             "ModuleVersion" : "4.0.0.0"
         },
         "Properties" : {
-            "ThreadID" : "10",
-            "ProcessID" : "21932",
+            "ThreadID" : 10,
+            "ProcessID" : 21932,
             "ProcessName" : "C:\\Projects\\github\\NLog.Mongo\\Source\\NLog.Mongo.ConsoleTest\\bin\\Debug\\NLog.Mongo.ConsoleTest.exe",
             "UserName" : "pwelter",
             "Test" : "ErrorWrite",
@@ -132,14 +132,14 @@ _property_ - Specifies a dictionary property on the Properties field. There can 
             connectionString="mongodb://localhost/Logging"
             collectionName="CustomLog"
             cappedCollectionSize="26214400">
-      <field name="Date" layout="${longdate}" />
+      <field name="Date" layout="${date}" bsonType="DateTime" />
       <field name="Level" layout="${level}"/>
       <field name="Message" layout="${message}" />
       <field name="Logger" layout="${logger}"/>
       <field name="Exception" layout="${exception:format=tostring}" />
-      <field name="ThreadID" layout="${threadid}" />
+      <field name="ThreadID" layout="${threadid}" bsonType="Int32" />
       <field name="ThreadName" layout="${threadname}" />
-      <field name="ProcessID" layout="${processid}" />
+      <field name="ProcessID" layout="${processid}" bsonType="Int32" />
       <field name="ProcessName" layout="${processname:fullName=true}" />
       <field name="UserName" layout="${windows-identity}" />
     </target>
@@ -148,12 +148,12 @@ _property_ - Specifies a dictionary property on the Properties field. There can 
 
     {
         "_id" : ObjectId("5187abc2545eb467ecce9184"),
-        "Date" : "2013-05-06 08:10:26.5019",
+        "Date" : ISODate("2015-02-02T17:31:20.728Z"),
         "Level" : "Debug",
         "Message" : "Sample debug message",
         "Logger" : "NLog.Mongo.ConsoleTest.Program",
-        "ThreadID" : "9",
-        "ProcessID" : "26604",
+        "ThreadID" : 9,
+        "ProcessID" : 26604,
         "ProcessName" : "C:\\Projects\\github\\NLog.Mongo\\Source\\NLog.Mongo.ConsoleTest\\bin\\Debug\\v4.5\\NLog.Mongo.ConsoleTest.exe",
         "UserName" : "pwelter"
     }
