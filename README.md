@@ -4,6 +4,10 @@ Writes NLog messages to MongoDB.
 
 [![Build status](https://ci.appveyor.com/api/projects/status/papk0yl4xf7agyxt)](https://ci.appveyor.com/project/LoreSoft/nlog-mongo)
 
+![NuGet Version](https://img.shields.io/nuget/v/NLog.Mongo.svg?style=flat-square)
+
+![NuGet Version](https://img.shields.io/nuget/dt/NLog.Mongo.svg?style=flat-square)
+
 ##Download
 
 The NLog.Mongo library is available on nuget.org via package name `NLog.Mongo`.
