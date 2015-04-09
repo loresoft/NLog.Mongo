@@ -1,25 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30110.0
+VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NLog.Mongo.netfx40", "NLog.Mongo\NLog.Mongo.netfx40.csproj", "{97D08F95-F710-4AF1-A49D-D2CFF770E764}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NLog.Mongo.net40", "NLog.Mongo\NLog.Mongo.net40.csproj", "{97D08F95-F710-4AF1-A49D-D2CFF770E764}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NLog.Mongo.ConsoleTest.netfx40", "NLog.Mongo.ConsoleTest\NLog.Mongo.ConsoleTest.netfx40.csproj", "{10901848-3067-4CB7-8B45-5FB1903CF57D}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{FFB8C510-F17B-4E7C-A049-82632065F964}"
-	ProjectSection(SolutionItems) = preProject
-		.nuget\NuGet.Config = .nuget\NuGet.Config
-		.nuget\NuGet.exe = .nuget\NuGet.exe
-		.nuget\NuGet.targets = .nuget\NuGet.targets
-	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{8B9F6041-4767-4A4E-90DA-2C10E56A4EA8}"
-	ProjectSection(SolutionItems) = preProject
-		..\Master.proj = ..\Master.proj
-		..\NLog.Mongo.nuspec = ..\NLog.Mongo.nuspec
-		..\README.md = ..\README.md
-	EndProjectSection
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NLog.Mongo.ConsoleTest.net40", "NLog.Mongo.ConsoleTest\NLog.Mongo.ConsoleTest.net40.csproj", "{10901848-3067-4CB7-8B45-5FB1903CF57D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

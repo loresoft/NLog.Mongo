@@ -14,14 +14,19 @@
     <language>en-US</language>
     <tags>NLog Logging MongoDB</tags>
     <dependencies>
-      <dependency id="NLog" version="3.2.0.0" />
-      <dependency id="mongocsharpdriver" version="1.9.2" />
+      <group>
+        <dependency id="NLog" version="3.2.0.0" />
+        <dependency id="mongocsharpdriver" version="[1.10.0,2.0)" />
+      </group>
+      <group targetFramework="net45">
+        <dependency id="NLog" version="3.2.0.0" />
+        <dependency id="mongocsharpdriver" version="2.0.0" />
+      </group>
     </dependencies>
   </metadata>
   <files>
-    <file src="bin\Release\v4.0\NLog.Mongo.*" target="lib\net40\" />
-    <file src="bin\Release\v4.5\NLog.Mongo.*" target="lib\net45\" />
+    <file src="net40\NLog.Mongo\bin\Release\NLog.Mongo.*" target="lib\net40\" />
+    <file src="net45\NLog.Mongo\bin\Release\NLog.Mongo.*" target="lib\net45\" />
     <file src="**\*.cs" target="src" />
-    <file src="..\GlobalAssemblyInfo.cs" target="src" />
   </files>
 </package>

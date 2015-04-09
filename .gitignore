@@ -109,3 +109,4 @@ UpgradeLog*.XML
 /Build
 /build.txt
 /Tools/MSBuildTasks
+*.GhostDoc.xml

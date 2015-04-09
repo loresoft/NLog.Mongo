@@ -58,11 +58,11 @@
 
   <Target Name="Compile" DependsOnTargets="Clean;Version">
     <!-- build for .net 4.5 -->
-    <MSBuild Projects="$(SourceFolder)\NLog.Mongo.netfx45.sln"
+    <MSBuild Projects="$(SourceFolder)\net45\NLog.Mongo.net45.sln"
              Properties="Configuration=$(BuildConfiguration)"/>
 
     <!-- build for .net 4.0 -->
-    <MSBuild Projects="$(SourceFolder)\NLog.Mongo.netfx40.sln"
+    <MSBuild Projects="$(SourceFolder)\net40\NLog.Mongo.net40.sln"
              Properties="Configuration=$(BuildConfiguration)"/>
   </Target>
 
