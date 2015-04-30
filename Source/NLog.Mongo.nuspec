@@ -15,11 +15,11 @@
     <tags>NLog Logging MongoDB</tags>
     <dependencies>
       <group>
-        <dependency id="NLog" version="3.2.0.0" />
+        <dependency id="NLog" version="3.2.1" />
         <dependency id="mongocsharpdriver" version="[1.10.0,2.0)" />
       </group>
       <group targetFramework="net45">
-        <dependency id="NLog" version="3.2.0.0" />
+        <dependency id="NLog" version="3.2.1" />
         <dependency id="mongocsharpdriver" version="2.0.0" />
       </group>
     </dependencies>
