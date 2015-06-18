@@ -109,29 +109,29 @@
     <!-- Update NuGet dependencies to match package version -->
 
     <!-- NLog -->
-    <XmlRead XmlFileName="$(SourceFolder)\NLog.Mongo\packages.config"
+    <XmlRead XmlFileName="$(SourceFolder)\net45\NLog.Mongo\packages.config"
              XPath="/packages/package[@id='NLog']/@version">
       <Output TaskParameter="Value" ItemName="NLogVersion" />
     </XmlRead>
 
     <Message Text="NLog Version: @(NLogVersion)"/>
 
-    <XmlUpdate XmlFileName="$(SourceFolder)\NLog.Mongo\NLog.Mongo.nuspec"
+    <XmlUpdate XmlFileName="$(SourceFolder)\NLog.Mongo.nuspec"
                Prefix="d" Namespace="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd"
-               XPath="/d:package/d:metadata/d:dependencies/d:dependency[@id='NLog']/@version"
+               XPath="/d:package/d:metadata/d:dependencies/d:group[@targetFramework='net45']/d:dependency[@id='NLog']/@version"
                Value="@(NLogVersion)" />
     
     <!-- MongoDB -->
-    <XmlRead XmlFileName="$(SourceFolder)\NLog.Mongo\packages.config"
+    <XmlRead XmlFileName="$(SourceFolder)\net45\NLog.Mongo\packages.config"
              XPath="/packages/package[@id='mongocsharpdriver']/@version">
       <Output TaskParameter="Value" ItemName="MongoCSharpDriverVersion" />
     </XmlRead>
 
     <Message Text="MongoCSharpDriverVersion Version: @(MongoCSharpDriverVersion)"/>
 
-    <XmlUpdate XmlFileName="$(SourceFolder)\NLog.Mongo\NLog.Mongo.nuspec"
+    <XmlUpdate XmlFileName="$(SourceFolder)\NLog.Mongo.nuspec"
                Prefix="d" Namespace="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd"
-               XPath="/d:package/d:metadata/d:dependencies/d:dependency[@id='mongocsharpdriver']/@version"
+               XPath="/d:package/d:metadata/d:dependencies/d:group[@targetFramework='net45']/d:dependency[@id='mongocsharpdriver']/@version"
                Value="@(MongoCSharpDriverVersion)" />
 
   </Target>

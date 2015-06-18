@@ -1,7 +1,7 @@
-version: 3.2.0.{build}
+version: 4.0.0.{build}
 environment:
-  Major: 3
-  Minor: 2
+  Major: 4
+  Minor: 0
   Revision: 0
 configuration: Release
 before_build:
