@@ -6,9 +6,7 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.Builders;
@@ -33,6 +31,7 @@ namespace NLog.Mongo
         {
             Fields = new List<MongoField>();
             Properties = new List<MongoField>();
+            DatabaseName = "NLog";
             IncludeDefaults = true;
         }
 
@@ -54,7 +53,6 @@ namespace NLog.Mongo
         [ArrayParameter(typeof(MongoField), "property")]
         public IList<MongoField> Properties { get; private set; }
 
-
         /// <summary>
         /// Gets or sets the connection string name string.
         /// </summary>
@@ -71,7 +69,6 @@ namespace NLog.Mongo
         /// </value>
         public string ConnectionName { get; set; }
 
-
         /// <summary>
         /// Gets or sets a value indicating whether to use the default document format.
         /// </summary>
@@ -80,6 +77,13 @@ namespace NLog.Mongo
         /// </value>
         public bool IncludeDefaults { get; set; }
 
+        /// <summary>
+        /// Gets or sets the name of the database.
+        /// </summary>
+        /// <value>
+        /// The name of the database.
+        /// </value>
+        public string DatabaseName { get; set; }
 
         /// <summary>
         /// Gets or sets the name of the collection.
@@ -104,7 +108,6 @@ namespace NLog.Mongo
         /// The capped collection max items.
         /// </value>
         public long? CappedCollectionMaxItems { get; set; }
-
 
         /// <summary>
         /// Initializes the target. Can be used by inheriting classes
@@ -287,12 +290,12 @@ namespace NLog.Mongo
                 return null;
 
             value = value.Trim();
-            
-            if (string.IsNullOrEmpty(field.BsonType) 
+
+            if (string.IsNullOrEmpty(field.BsonType)
                 || string.Equals(field.BsonType, "String", StringComparison.OrdinalIgnoreCase))
                 return new BsonString(value);
 
-            
+
             BsonValue bsonValue;
             if (string.Equals(field.BsonType, "Boolean", StringComparison.OrdinalIgnoreCase)
                 && MongoConvert.TryBoolean(value, out bsonValue))
@@ -305,11 +308,11 @@ namespace NLog.Mongo
             if (string.Equals(field.BsonType, "Double", StringComparison.OrdinalIgnoreCase)
                 && MongoConvert.TryDouble(value, out bsonValue))
                 return bsonValue;
-            
+
             if (string.Equals(field.BsonType, "Int32", StringComparison.OrdinalIgnoreCase)
                 && MongoConvert.TryInt32(value, out bsonValue))
                 return bsonValue;
-            
+
             if (string.Equals(field.BsonType, "Int64", StringComparison.OrdinalIgnoreCase)
                 && MongoConvert.TryInt64(value, out bsonValue))
                 return bsonValue;
@@ -320,9 +323,9 @@ namespace NLog.Mongo
         private MongoCollection GetCollection()
         {
             // cache mongo collection based on target name.
-            string key = string.Format("k|{0}|{1}|{2}", 
-                ConnectionName ?? string.Empty, 
-                ConnectionString ?? string.Empty, 
+            string key = string.Format("k|{0}|{1}|{2}",
+                ConnectionName ?? string.Empty,
+                ConnectionString ?? string.Empty,
                 CollectionName ?? string.Empty);
 
             return _collectionCache.GetOrAdd(key, k =>
@@ -331,7 +334,8 @@ namespace NLog.Mongo
                 var mongoUrl = new MongoUrl(ConnectionString);
                 var client = new MongoClient(mongoUrl);
                 var server = client.GetServer();
-                var database = server.GetDatabase(mongoUrl.DatabaseName ?? "NLog");
+                var databaseName = mongoUrl.DatabaseName ?? DatabaseName ?? "NLog";
+                var database = server.GetDatabase(databaseName);
 
                 string collectionName = CollectionName ?? "Log";
 

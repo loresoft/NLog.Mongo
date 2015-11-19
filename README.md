@@ -40,6 +40,7 @@ In your Package Manager settings add the following package source for developmen
               collectionName="String"
               cappedCollectionSize="Long"
               cappedCollectionMaxItems="Long"
+              databaseName="String"
               includeDefaults="Boolean">
         
         <!-- repeated --> 
@@ -62,6 +63,8 @@ _name_ - Name of the target.
 _connectionName_ - The name of the connection string to get from the config file. 
 
 _connectionString_ - Connection string. When provided, it overrides the values specified in connectionName. 
+
+_databaseName_ - The name of the database.  If provided in the connection string, it will be used.  If not, it will use the default value, "NLog".
 
 ###Collection Options
 _collectionName_ - The name of the MongoDB collection to write logs to.  
@@ -133,8 +136,9 @@ _property_ - Specifies a dictionary property on the Properties field. There can 
     <target xsi:type="Mongo"
             name="mongoCustom"
             includeDefaults="false"
-            connectionString="mongodb://localhost/Logging"
+            connectionString="mongodb://localhost"
             collectionName="CustomLog"
+            databaseName="Logging"
             cappedCollectionSize="26214400">
       <field name="Date" layout="${date}" bsonType="DateTime" />
       <field name="Level" layout="${level}"/>
