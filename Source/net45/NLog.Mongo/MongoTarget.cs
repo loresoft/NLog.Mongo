@@ -337,7 +337,7 @@ namespace NLog.Mongo
                 var databaseName = mongoUrl.DatabaseName ?? DatabaseName ?? "NLog";
                 var database = server.GetDatabase(databaseName);
 
-                string collectionName = CollectionName ?? "Log";
+                string collectionName = FormatCollectionName(CollectionName) ?? "Log";
 
                 if (CappedCollectionSize.HasValue && !database.CollectionExists(collectionName))
                 {
@@ -354,6 +354,19 @@ namespace NLog.Mongo
 
                 return database.GetCollection(collectionName);
             });
+        }
+        
+        private string FormatCollectionName(string collectionName)
+        {
+            var result = default(string);
+            var reg = new Regex(@"\${date:(.+)}");
+            if (reg.IsMatch(collectionName))
+            {
+                var dateEvaluator = new MatchEvaluator(match => DateTime.Now.ToString(match.Groups[1].Value));
+                result = reg.Replace(collectionName, dateEvaluator);
+            }
+
+            return result;
         }
 
 
