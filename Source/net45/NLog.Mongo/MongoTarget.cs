@@ -31,7 +31,6 @@ namespace NLog.Mongo
         {
             Fields = new List<MongoField>();
             Properties = new List<MongoField>();
-            DatabaseName = "NLog";
             IncludeDefaults = true;
         }
 
@@ -334,7 +333,9 @@ namespace NLog.Mongo
                 var mongoUrl = new MongoUrl(ConnectionString);
                 var client = new MongoClient(mongoUrl);
                 var server = client.GetServer();
-                var databaseName = mongoUrl.DatabaseName ?? DatabaseName ?? "NLog";
+
+                // Database name overrides connection string
+                var databaseName = DatabaseName ?? mongoUrl.DatabaseName ?? "NLog";
                 var database = server.GetDatabase(databaseName);
 
                 string collectionName = CollectionName ?? "Log";
