@@ -19,8 +19,8 @@
         <dependency id="mongocsharpdriver" version="[1.10.1,2.0)" />
       </group>
       <group targetFramework="net45">
-        <dependency id="NLog" version="4.3.0" />
-        <dependency id="mongocsharpdriver" version="2.2.3" />
+        <dependency id="NLog" version="4.3.5" />
+        <dependency id="mongocsharpdriver" version="2.2.4" />
       </group>
     </dependencies>
   </metadata>
