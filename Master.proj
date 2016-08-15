@@ -4,7 +4,8 @@
   <PropertyGroup>
     <BuildFolder>$(MSBuildProjectDirectory)\Build</BuildFolder>
     <ToolFolder>$(MSBuildProjectDirectory)\Tools</ToolFolder>
-    <SourceFolder>$(MSBuildProjectDirectory)\Source</SourceFolder>
+    <SourceFolder>$(MSBuildProjectDirectory)\src</SourceFolder>
+    <TestFolder>$(MSBuildProjectDirectory)\test</TestFolder>
 
     <MSBuildCommunityTasksPath>$(ToolFolder)\MSBuildTasks\tools</MSBuildCommunityTasksPath>
   </PropertyGroup>
@@ -19,8 +20,8 @@
 
     <BuildConfiguration  Condition=" '$(BuildConfiguration)' == '' ">Release</BuildConfiguration>
 
-    <Major Condition=" '$(Major)' == '' ">3</Major>
-    <Minor Condition=" '$(Minor)' == '' ">2</Minor>
+    <Major Condition=" '$(Major)' == '' ">4</Major>
+    <Minor Condition=" '$(Minor)' == '' ">4</Minor>
     <Revision Condition=" '$(Revision)' == '' ">0</Revision>
 
     <AssemblyVersion>$(Major).$(Minor).0.0</AssemblyVersion>
@@ -28,6 +29,7 @@
     <AssemblyInformationalVersion>$(Major).$(Minor).$(Revision).$(BuildNumber)</AssemblyInformationalVersion>
     <PackageVersion>$(Major).$(Minor).$(Revision).$(BuildNumber)</PackageVersion>
   </PropertyGroup>
+
 
   <Target Name="Clean">
     <DeleteTree Directories="**\obj\**;**\bin\**" />
@@ -52,88 +54,49 @@
                   AssemblyVersion="$(AssemblyVersion)"
                   AssemblyFileVersion="$(AssemblyFileVersion)"
                   AssemblyInformationalVersion="$(AssemblyInformationalVersion)"
-                  AssemblyTrademark=""
-                  ComVisible="false"/>
+                  AssemblyTrademark=""/>
+    <ItemGroup>
+      <VersionFiles Include="$(SourceFolder)\**\project.json"/>
+      <VersionFiles Include="$(TestFolder)\**\project.json"/>
+    </ItemGroup>
+
+    <FileUpdate Files="%(VersionFiles.Identity)"
+                Regex="&quot;version&quot;: &quot;$(AssemblyVersion)&quot;,"
+                ReplacementText="&quot;version&quot;: &quot;$(PackageVersion)&quot;," />
+
+    <FileUpdate Files="%(VersionFiles.Identity)"
+                Regex="&quot;NLog.Mongo&quot;: &quot;$(AssemblyVersion)&quot;,"
+                ReplacementText="&quot;NLog.Mongo&quot;: &quot;$(PackageVersion)&quot;," />
   </Target>
 
   <Target Name="Compile" DependsOnTargets="Clean;Version">
-    <!-- build for .net 4.5 -->
-    <MSBuild Projects="$(SourceFolder)\net45\NLog.Mongo.net45.sln"
-             Properties="Configuration=$(BuildConfiguration)"/>
-
-    <!-- build for .net 4.0 -->
-    <MSBuild Projects="$(SourceFolder)\net40\NLog.Mongo.net40.sln"
+    <MSBuild Projects="NLog.Mongo.sln"
              Properties="Configuration=$(BuildConfiguration)"/>
   </Target>
 
-  <Target Name="Package" DependsOnTargets="Compile">
+  <Target Name="Test" DependsOnTargets="Compile">
+    <ItemGroup>
+      <TestAssemblies Include="$(TestFolder)\**\project.json"/>
+    </ItemGroup>
+
+    <!--<exec Command="dotnet test &quot;%(TestAssemblies.Identity)&quot;"
+          WorkingDirectory="$(TestFolder)\%(TestAssemblies.RecursiveDir)"/>-->
+  </Target>
+
+
+  <Target Name="Package" DependsOnTargets="Test">
     <MakeDir Directories="$(BuildFolder)" Condition="!EXISTS($(BuildFolder))" />
 
     <ItemGroup>
-      <NuGetFiles Include="$(SourceFolder)\**\*.nuspec"/>
+      <ProjectFiles Include="$(SourceFolder)\**\project.json"/>
     </ItemGroup>
 
-    <NuGetPack File="%(NuGetFiles.Identity)"
-               OutputDirectory="$(BuildFolder)"
-               Version="$(PackageVersion)"
-               Symbols="true"  />
-  </Target>
-
-  <Target Name="Publish" DependsOnTargets="Package">
-
-    <!-- 
-      Requires API key to be set ...
-      nuget.exe setapikey <myget-key> -Source https://www.myget.org/F/loresoft/
-    -->
-
-    <ItemGroup>
-      <NuGetPackages Include="$(BuildFolder)\*.nupkg" Exclude="$(BuildFolder)\*.symbols.nupkg"/>
-      <NuGetSymbols Include="$(BuildFolder)\*.symbols.nupkg" />
-    </ItemGroup>
-
-    <!-- Push to MyGet on Build -->
-    <NuGetPush File="%(NuGetPackages.Identity)"
-               Source="https://www.myget.org/F/loresoft/" />
-
-    <!-- Push to Symbols on Build -->
-    <NuGetPush File="%(NuGetSymbols.Identity)"
-               Source="https://nuget.symbolsource.org/MyGet/loresoft" />
-  </Target>
-
-
-  <Target Name="Build">
-    <CallTarget Targets="Package" />
-  </Target>
-  
-  <Target Name="Refresh">
-    <!-- Update NuGet dependencies to match package version -->
-
-    <!-- NLog -->
-    <XmlRead XmlFileName="$(SourceFolder)\net45\NLog.Mongo\packages.config"
-             XPath="/packages/package[@id='NLog']/@version">
-      <Output TaskParameter="Value" ItemName="NLogVersion" />
-    </XmlRead>
-
-    <Message Text="NLog Version: @(NLogVersion)"/>
-
-    <XmlUpdate XmlFileName="$(SourceFolder)\NLog.Mongo.nuspec"
-               Prefix="d" Namespace="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd"
-               XPath="/d:package/d:metadata/d:dependencies/d:group[@targetFramework='net45']/d:dependency[@id='NLog']/@version"
-               Value="@(NLogVersion)" />
+    <exec Command="dotnet pack --output &quot;$(BuildFolder)&quot; &quot;%(ProjectFiles.Identity)&quot; "
+          WorkingDirectory="$(SourceFolder)\%(ProjectFiles.RecursiveDir)"/>
     
-    <!-- MongoDB -->
-    <XmlRead XmlFileName="$(SourceFolder)\net45\NLog.Mongo\packages.config"
-             XPath="/packages/package[@id='mongocsharpdriver']/@version">
-      <Output TaskParameter="Value" ItemName="MongoCSharpDriverVersion" />
-    </XmlRead>
+  </Target>
 
-    <Message Text="MongoCSharpDriverVersion Version: @(MongoCSharpDriverVersion)"/>
-
-    <XmlUpdate XmlFileName="$(SourceFolder)\NLog.Mongo.nuspec"
-               Prefix="d" Namespace="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd"
-               XPath="/d:package/d:metadata/d:dependencies/d:group[@targetFramework='net45']/d:dependency[@id='mongocsharpdriver']/@version"
-               Value="@(MongoCSharpDriverVersion)" />
-
+  <Target Name="Build" DependsOnTargets="Package">
   </Target>
 
 </Project>
