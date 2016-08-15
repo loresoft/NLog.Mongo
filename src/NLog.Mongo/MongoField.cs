@@ -14,7 +14,8 @@ namespace NLog.Mongo
         /// <summary>
         /// Initializes a new instance of the <see cref="MongoField"/> class.
         /// </summary>
-        public MongoField() : this(null, null, "String")
+        public MongoField() 
+            : this(null, null, "String")
         {
         }
 

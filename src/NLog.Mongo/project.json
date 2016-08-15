@@ -1,0 +1,30 @@
+﻿{
+  "version": "4.4.0.0",
+  "description": "NLog MongoDB target",
+  "language": "en-US",
+  "authors": [ "LoreSoft" ],
+  "packOptions": {
+    "copyright": "Copyright (c) 2016, LoreSoft",
+    "owners": [ "LoreSoft" ],
+    "projectUrl": "https://github.com/loresoft/NLog.Mongo",
+    "licenseUrl": "https://raw.githubusercontent.com/loresoft/NLog.Mongo/master/LICENSE",
+    "requireLicenseAcceptance": false,
+    "summary": "NLog MongoDB target",
+    "tags": [ "NLog", "Logging", "MongoDB" ]
+  },
+  "buildOptions": {
+    "compile": [ "..\\GlobalAssemblyInfo.cs" ],
+    "xmlDoc": true
+  },
+  "dependencies": {
+    "MongoDB.Driver": "2.2.4",
+    "NLog": "4.3.7"
+  },
+  "frameworks": {
+    "net45": {
+      "frameworkAssemblies": {
+        "System.Configuration": ""
+      }
+    }
+  }
+}

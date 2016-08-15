@@ -9,7 +9,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using MongoDB.Driver.Builders;
 using NLog.Common;
 using NLog.Config;
 using NLog.Targets;
@@ -22,7 +21,7 @@ namespace NLog.Mongo
     [Target("Mongo")]
     public class MongoTarget : Target
     {
-        private static readonly ConcurrentDictionary<string, MongoCollection> _collectionCache = new ConcurrentDictionary<string, MongoCollection>();
+        private static readonly ConcurrentDictionary<string, IMongoCollection<BsonDocument>> _collectionCache = new ConcurrentDictionary<string, IMongoCollection<BsonDocument>>();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MongoTarget"/> class.
@@ -141,7 +140,7 @@ namespace NLog.Mongo
                 var documents = logEvents.Select(e => CreateDocument(e.LogEvent));
 
                 var collection = GetCollection();
-                collection.InsertBatch(documents);
+                collection.InsertMany(documents);
 
                 foreach (var ev in logEvents)
                     ev.Continuation(null);
@@ -171,7 +170,7 @@ namespace NLog.Mongo
             {
                 var document = CreateDocument(logEvent);
                 var collection = GetCollection();
-                collection.Insert(document);
+                collection.InsertOne(document);
             }
             catch (Exception ex)
             {
@@ -319,7 +318,7 @@ namespace NLog.Mongo
             return new BsonString(value);
         }
 
-        private MongoCollection GetCollection()
+        private IMongoCollection<BsonDocument> GetCollection()
         {
             // cache mongo collection based on target name.
             string key = string.Format("k|{0}|{1}|{2}",
@@ -332,28 +331,26 @@ namespace NLog.Mongo
                 // create collection
                 var mongoUrl = new MongoUrl(ConnectionString);
                 var client = new MongoClient(mongoUrl);
-                var server = client.GetServer();
 
                 // Database name overrides connection string
                 var databaseName = DatabaseName ?? mongoUrl.DatabaseName ?? "NLog";
-                var database = server.GetDatabase(databaseName);
+                var database = client.GetDatabase(databaseName);
 
                 string collectionName = CollectionName ?? "Log";
+                if (!CappedCollectionSize.HasValue || CollectionExists(database, collectionName))
+                    return database.GetCollection<BsonDocument>(collectionName);
 
-                if (CappedCollectionSize.HasValue && !database.CollectionExists(collectionName))
+                // create capped
+                var options = new CreateCollectionOptions
                 {
-                    // create capped
-                    var options = CollectionOptions
-                        .SetCapped(true)
-                        .SetMaxSize(CappedCollectionSize.Value);
+                    Capped = true, 
+                    MaxSize = CappedCollectionSize,
+                    MaxDocuments = CappedCollectionMaxItems
+                };
 
-                    if (CappedCollectionMaxItems.HasValue)
-                        options.SetMaxDocuments(CappedCollectionMaxItems.Value);
+                database.CreateCollection(collectionName, options);
 
-                    database.CreateCollection(collectionName, options);
-                }
-
-                return database.GetCollection(collectionName);
+                return database.GetCollection<BsonDocument>(collectionName);
             });
         }
 
@@ -361,20 +358,27 @@ namespace NLog.Mongo
         private static string GetConnectionString(string connectionName)
         {
             if (connectionName == null)
-                throw new ArgumentNullException("connectionName");
+                throw new ArgumentNullException(nameof(connectionName));
 
             var settings = ConfigurationManager.ConnectionStrings[connectionName];
             if (settings == null)
-                throw new NLogConfigurationException(
-                    string.Format("No connection string named '{0}' could be found in the application configuration file.", connectionName));
+                throw new NLogConfigurationException($"No connection string named '{connectionName}' could be found in the application configuration file.");
 
             string connectionString = settings.ConnectionString;
             if (string.IsNullOrEmpty(connectionString))
-                throw new NLogConfigurationException(
-                    string.Format("The connection string '{0}' in the application's configuration file does not contain the required connectionString attribute.", connectionName));
+                throw new NLogConfigurationException($"The connection string '{connectionName}' in the application's configuration file does not contain the required connectionString attribute.");
 
             return settings.ConnectionString;
         }
 
+        private static bool CollectionExists(IMongoDatabase database, string collectionName)
+        {
+            var options = new ListCollectionsOptions
+            {
+                Filter = Builders<BsonDocument>.Filter.Eq("name", collectionName)
+            };
+
+            return database.ListCollections(options).ToEnumerable().Any();
+        }
     }
 }

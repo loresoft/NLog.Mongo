@@ -1,0 +1,23 @@
+﻿{
+  "version": "4.4.0.0",
+  "buildOptions": {
+    "emitEntryPoint": true,
+    "copyToOutput": {
+      "include": [ "NLog.config" ]
+    }
+  },
+
+  "dependencies": {
+    "MongoDB.Driver": "2.2.4",
+    "NLog": "4.3.7",
+    "NLog.Mongo": "4.4.0.0"
+  },
+
+  "frameworks": {
+    "net45": {
+      "frameworkAssemblies": {
+        "System.Configuration": ""
+      }
+    }
+  }
+}

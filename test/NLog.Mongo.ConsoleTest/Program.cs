@@ -8,10 +8,11 @@ using NLog.Fluent;
 
 namespace NLog.Mongo.ConsoleTest
 {
-    class Program
+    public class Program
     {
         private static readonly NLog.Logger _logger = NLog.LogManager.GetCurrentClassLogger();
-        static void Main(string[] args)
+        
+        public static void Main(string[] args)
         {
             int k = 42;
             int l = 100;
