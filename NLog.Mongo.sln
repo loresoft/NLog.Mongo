@@ -12,6 +12,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{061EE777-D34B-43A8-AEFD-4557D39A9C94}"
 	ProjectSection(SolutionItems) = preProject
 		appveyor.yml = appveyor.yml
+		bootstrap.cmd = bootstrap.cmd
 		Master.proj = Master.proj
 	EndProjectSection
 EndProject

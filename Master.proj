@@ -61,12 +61,16 @@
     </ItemGroup>
 
     <FileUpdate Files="%(VersionFiles.Identity)"
-                Regex="&quot;version&quot;: &quot;$(AssemblyVersion)&quot;,"
-                ReplacementText="&quot;version&quot;: &quot;$(PackageVersion)&quot;," />
+                Regex="&quot;version&quot;: &quot;$(AssemblyVersion)&quot;"
+                ReplacementText="&quot;version&quot;: &quot;$(PackageVersion)&quot;" />
 
     <FileUpdate Files="%(VersionFiles.Identity)"
-                Regex="&quot;NLog.Mongo&quot;: &quot;$(AssemblyVersion)&quot;,"
-                ReplacementText="&quot;NLog.Mongo&quot;: &quot;$(PackageVersion)&quot;," />
+                Regex="&quot;NLog.Mongo&quot;: &quot;$(AssemblyVersion)&quot;"
+                ReplacementText="&quot;NLog.Mongo&quot;: &quot;$(PackageVersion)&quot;" />
+    
+    <exec Command="dotnet restore"
+          WorkingDirectory="$(MSBuildProjectDirectory)"/>
+
   </Target>
 
   <Target Name="Compile" DependsOnTargets="Clean;Version">
