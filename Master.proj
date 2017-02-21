@@ -55,22 +55,9 @@
                   AssemblyFileVersion="$(AssemblyFileVersion)"
                   AssemblyInformationalVersion="$(AssemblyInformationalVersion)"
                   AssemblyTrademark=""/>
-    <ItemGroup>
-      <VersionFiles Include="$(SourceFolder)\**\project.json"/>
-      <VersionFiles Include="$(TestFolder)\**\project.json"/>
-    </ItemGroup>
 
-    <FileUpdate Files="%(VersionFiles.Identity)"
-                Regex="&quot;version&quot;: &quot;$(AssemblyVersion)&quot;"
-                ReplacementText="&quot;version&quot;: &quot;$(PackageVersion)&quot;" />
-
-    <FileUpdate Files="%(VersionFiles.Identity)"
-                Regex="&quot;NLog.Mongo&quot;: &quot;$(AssemblyVersion)&quot;"
-                ReplacementText="&quot;NLog.Mongo&quot;: &quot;$(PackageVersion)&quot;" />
-    
-    <exec Command="dotnet restore"
+    <exec Command="dotnet restore NLog.Mongo.sln"
           WorkingDirectory="$(MSBuildProjectDirectory)"/>
-
   </Target>
 
   <Target Name="Compile" DependsOnTargets="Clean;Version">
@@ -80,7 +67,7 @@
 
   <Target Name="Test" DependsOnTargets="Compile">
     <ItemGroup>
-      <TestAssemblies Include="$(TestFolder)\**\project.json"/>
+      <TestAssemblies Include="$(TestFolder)\**\*.csproj"/>
     </ItemGroup>
 
     <!--<exec Command="dotnet test &quot;%(TestAssemblies.Identity)&quot;"
@@ -92,12 +79,12 @@
     <MakeDir Directories="$(BuildFolder)" Condition="!EXISTS($(BuildFolder))" />
 
     <ItemGroup>
-      <ProjectFiles Include="$(SourceFolder)\**\project.json"/>
+      <ProjectFiles Include="$(SourceFolder)\**\*.csproj"/>
     </ItemGroup>
 
-    <exec Command="dotnet pack --output &quot;$(BuildFolder)&quot; &quot;%(ProjectFiles.Identity)&quot; "
+    <exec Command="dotnet pack &quot;%(ProjectFiles.Identity)&quot; --output &quot;$(BuildFolder)&quot; --include-symbols --configuration Release --include-source -p:Version=$(PackageVersion)"
           WorkingDirectory="$(SourceFolder)\%(ProjectFiles.RecursiveDir)"/>
-    
+
   </Target>
 
   <Target Name="Build" DependsOnTargets="Package">
