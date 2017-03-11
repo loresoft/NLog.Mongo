@@ -77,10 +77,11 @@
 
     <exec Command="dotnet test &quot;%(TestAssemblies.Identity)&quot; --configuration $(BuildConfiguration)"
           WorkingDirectory="$(TestFolder)\%(TestAssemblies.RecursiveDir)"/>
+
   </Target>
 
 
-  <Target Name="Package" DependsOnTargets="Test">
+  <Target Name="Package" DependsOnTargets="Compile">
     <MakeDir Directories="$(BuildFolder)" Condition="!EXISTS($(BuildFolder))" />
 
     <ItemGroup>
