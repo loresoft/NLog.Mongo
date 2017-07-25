@@ -1,4 +1,4 @@
-#NLog.Mongo
+# NLog.Mongo
 
 Writes NLog messages to MongoDB.
 
@@ -6,7 +6,7 @@ Writes NLog messages to MongoDB.
 
 [![NuGet Version](https://img.shields.io/nuget/v/NLog.Mongo.svg?style=flat-square)](https://www.nuget.org/packages/NLog.Mongo/) 
 
-##Download
+## Download
 
 The NLog.Mongo library is available on nuget.org via package name `NLog.Mongo`.
 
@@ -17,14 +17,14 @@ To install NLog.Mongo, run the following command in the Package Manager Console
 More information about NuGet package avaliable at
 <https://nuget.org/packages/NLog.Mongo>
 
-##Development Builds
+## Development Builds
 
 Development builds are available on the myget.org feed.  A development build is promoted to the main NuGet feed when it's determined to be stable. 
 
 In your Package Manager settings add the following package source for development builds:
 <http://www.myget.org/F/loresoft/>
 
-##Configuration Syntax
+## Configuration Syntax
 
 ```xml
 <extensions>
@@ -51,13 +51,13 @@ In your Package Manager settings add the following package source for developmen
 </targets>
 ```
 
-##Parameters
+## Parameters
 
-###General Options
+### General Options
 
 _name_ - Name of the target.
 
-###Connection Options
+### Connection Options
 
 _connectionName_ - The name of the connection string to get from the config file. 
 
@@ -65,14 +65,14 @@ _connectionString_ - Connection string. When provided, it overrides the values s
 
 _databaseName_ - The name of the database, overrides connection string database.
 
-###Collection Options
+### Collection Options
 _collectionName_ - The name of the MongoDB collection to write logs to.  
 
 _cappedCollectionSize_ - If the collection doesn't exist, it will be create as a capped collection with this max size.
 
 _cappedCollectionMaxItems_ - If the collection doesn't exist, it will be create as a capped collection with this max number of items.  _cappedCollectionSize_ must also be set when using this setting.
 
-###Document Options
+### Document Options
 
 _includeDefaults_ - Specifies if the default document is created when writing to the collection.  Defaults to true.
 
@@ -80,11 +80,11 @@ _field_ - Specifies a root level document field. There can be multiple fields sp
 
 _property_ - Specifies a dictionary property on the Properties field. There can be multiple properties specified.
 
-##Examples
+## Examples
 
-###Default Configuration with Extra Properties
+### Default Configuration with Extra Properties
 
-####NLog.config target
+#### NLog.config target
 
 ```xml
 <target xsi:type="Mongo"
@@ -100,7 +100,7 @@ _property_ - Specifies a dictionary property on the Properties field. There can 
 </target>
 ```
 
-####Default Output JSON
+#### Default Output JSON
 
 ```JSON
 {
@@ -131,9 +131,9 @@ _property_ - Specifies a dictionary property on the Properties field. There can 
 }
 ```
 
-###Complete Custom Document
+### Complete Custom Document
 
-####NLog.config target
+#### NLog.config target
 
 ```xml
 <target xsi:type="Mongo"
@@ -156,7 +156,7 @@ _property_ - Specifies a dictionary property on the Properties field. There can 
 </target>
 ```
 
-####Custom Output JSON
+#### Custom Output JSON
 
 ```JSON
 {
