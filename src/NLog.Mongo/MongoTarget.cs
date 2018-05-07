@@ -174,10 +174,9 @@ namespace NLog.Mongo
             }
             catch (Exception ex)
             {
-                if (ex is StackOverflowException || ex is ThreadAbortException || ex is OutOfMemoryException || ex is NLogConfigurationException)
-                    throw;
-
                 InternalLogger.Error("Error when writing to MongoDB {0}", ex);
+
+                throw;
             }
         }
 
@@ -343,7 +342,7 @@ namespace NLog.Mongo
                 // create capped
                 var options = new CreateCollectionOptions
                 {
-                    Capped = true, 
+                    Capped = true,
                     MaxSize = CappedCollectionSize,
                     MaxDocuments = CappedCollectionMaxItems
                 };
