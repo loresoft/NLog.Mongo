@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -130,9 +129,9 @@ namespace NLog.Mongo
         /// optimize batch writes.
         /// </summary>
         /// <param name="logEvents">Logging events to be written out.</param>
-        protected override void Write(AsyncLogEventInfo[] logEvents)
+        protected override void Write(IList<AsyncLogEventInfo> logEvents)
         {
-            if (logEvents.Length == 0)
+            if (logEvents.Count == 0)
                 return;
 
             try
@@ -148,14 +147,16 @@ namespace NLog.Mongo
             }
             catch (Exception ex)
             {
-                if (ex is StackOverflowException || ex is ThreadAbortException || ex is OutOfMemoryException || ex is NLogConfigurationException)
-                    throw;
-
                 InternalLogger.Error("Error when writing to MongoDB {0}", ex);
+
+                if (ex.MustBeRethrownImmediately())
+                    throw;
 
                 foreach (var ev in logEvents)
                     ev.Continuation(ex);
 
+                if (ex.MustBeRethrown())
+                    throw;
             }
         }
 
@@ -260,13 +261,15 @@ namespace NLog.Mongo
             document.Add("Text", new BsonString(exception.ToString()));
             document.Add("Type", new BsonString(exception.GetType().ToString()));
 
-            var external = exception as ExternalException;
-            if (external != null)
+#if !NETSTANDARD1_5
+            if (exception is ExternalException external)
                 document.Add("ErrorCode", new BsonInt32(external.ErrorCode));
+#endif
 
             document.Add("Source", new BsonString(exception.Source));
 
-            MethodBase method = exception.TargetSite;
+#if !NETSTANDARD1_5
+            var method = exception.TargetSite;
             if (method != null)
             {
                 document.Add("MethodName", new BsonString(method.Name));
@@ -275,6 +278,7 @@ namespace NLog.Mongo
                 document.Add("ModuleName", new BsonString(assembly.Name));
                 document.Add("ModuleVersion", new BsonString(assembly.Version.ToString()));
             }
+#endif
 
             return document;
         }
@@ -359,7 +363,10 @@ namespace NLog.Mongo
             if (connectionName == null)
                 throw new ArgumentNullException(nameof(connectionName));
 
-            var settings = ConfigurationManager.ConnectionStrings[connectionName];
+#if NETSTANDARD1_5 || NETSTANDARD2_0
+            return null;
+#else
+            var settings = System.Configuration.ConfigurationManager.ConnectionStrings[connectionName];
             if (settings == null)
                 throw new NLogConfigurationException($"No connection string named '{connectionName}' could be found in the application configuration file.");
 
@@ -367,7 +374,8 @@ namespace NLog.Mongo
             if (string.IsNullOrEmpty(connectionString))
                 throw new NLogConfigurationException($"The connection string '{connectionName}' in the application's configuration file does not contain the required connectionString attribute.");
 
-            return settings.ConnectionString;
+            return connectionString;
+#endif
         }
 
         private static bool CollectionExists(IMongoDatabase database, string collectionName)
