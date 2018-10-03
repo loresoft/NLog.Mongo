@@ -121,6 +121,19 @@ namespace NLog.Mongo
             if (string.IsNullOrEmpty(ConnectionString))
                 throw new NLogConfigurationException("Can not resolve MongoDB ConnectionString. Please make sure the ConnectionString property is set.");
 
+            // Render the connection string, database name and collection name at startup to replace GDC variables in the NLog configuration
+            // e.g. <target xsi:type="Mongo" name = "mongo" connectionString = "${gdc:item=connectionString}" ... />
+            // The GDC variables are currently not automatically resolved (NLog 4.5.8 with ASP.NET Core 2.1) 
+            var logEvent = LogEventInfo.CreateNullEvent();
+
+            var connStringRenderer = NLog.Layouts.Layout.FromString(this.ConnectionString);
+            this.ConnectionString = connStringRenderer.Render(logEvent);
+
+            var databaseRenderer = NLog.Layouts.Layout.FromString(this.DatabaseName);
+            this.DatabaseName = databaseRenderer.Render(LogEventInfo.CreateNullEvent());
+
+            var collectionRenderer = NLog.Layouts.Layout.FromString(this.CollectionName);
+            this.CollectionName = collectionRenderer.Render(logEvent);
         }
 
         /// <summary>
