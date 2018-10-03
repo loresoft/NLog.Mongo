@@ -130,7 +130,7 @@ namespace NLog.Mongo
             this.ConnectionString = connStringRenderer.Render(logEvent);
 
             var databaseRenderer = NLog.Layouts.Layout.FromString(this.DatabaseName);
-            this.DatabaseName = databaseRenderer.Render(LogEventInfo.CreateNullEvent());
+            this.DatabaseName = databaseRenderer.Render(logEvent);
 
             var collectionRenderer = NLog.Layouts.Layout.FromString(this.CollectionName);
             this.CollectionName = collectionRenderer.Render(logEvent);
