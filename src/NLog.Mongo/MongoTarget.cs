@@ -5,11 +5,11 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Threading;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using NLog.Common;
 using NLog.Config;
+using NLog.Layouts;
 using NLog.Targets;
 
 namespace NLog.Mongo
@@ -20,7 +20,40 @@ namespace NLog.Mongo
     [Target("Mongo")]
     public class MongoTarget : Target
     {
-        private static readonly ConcurrentDictionary<string, IMongoCollection<BsonDocument>> _collectionCache = new ConcurrentDictionary<string, IMongoCollection<BsonDocument>>();
+        struct MongoConnectionKey : IEquatable<MongoConnectionKey>
+        {
+            readonly string ConnectionString;
+            readonly string CollectionName;
+            readonly string DatabaseName;
+
+            public MongoConnectionKey(string connectionString, string collectionName, string databaseName)
+            {
+                ConnectionString = connectionString ?? string.Empty;
+                CollectionName = collectionName ?? string.Empty;
+                DatabaseName = databaseName ?? string.Empty;
+            }
+
+            public bool Equals(MongoConnectionKey other)
+            {
+                return ConnectionString == other.ConnectionString
+                    && CollectionName == other.CollectionName
+                    && DatabaseName == other.DatabaseName;
+            }
+
+            public override int GetHashCode()
+            {
+                return ConnectionString.GetHashCode() ^ CollectionName.GetHashCode() ^ DatabaseName.GetHashCode();
+            }
+
+            public override bool Equals(object obj)
+            {
+                return obj is MongoConnectionKey && Equals((MongoConnectionKey)obj);
+            }
+        }
+
+        private static readonly ConcurrentDictionary<MongoConnectionKey, IMongoCollection<BsonDocument>> _collectionCache = new ConcurrentDictionary<MongoConnectionKey, IMongoCollection<BsonDocument>>();
+        private Func<AsyncLogEventInfo, BsonDocument> _createDocumentDelegate;
+        private static readonly LogEventInfo _defaultLogEvent = NLog.LogEventInfo.CreateNullEvent();
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MongoTarget"/> class.
@@ -30,6 +63,7 @@ namespace NLog.Mongo
             Fields = new List<MongoField>();
             Properties = new List<MongoField>();
             IncludeDefaults = true;
+            OptimizeBufferReuse = true;
         }
 
         /// <summary>
@@ -56,7 +90,8 @@ namespace NLog.Mongo
         /// <value>
         /// The connection name string.
         /// </value>
-        public string ConnectionString { get; set; }
+        public string ConnectionString { get { return (_connectionString as SimpleLayout)?.Text; } set { _connectionString = value ?? string.Empty; } }
+        private Layout _connectionString;
 
         /// <summary>
         /// Gets or sets the name of the connection.
@@ -80,7 +115,8 @@ namespace NLog.Mongo
         /// <value>
         /// The name of the database.
         /// </value>
-        public string DatabaseName { get; set; }
+        public string DatabaseName { get { return (_databaseName as SimpleLayout)?.Text; } set { _databaseName = value ?? string.Empty; } }
+        private Layout _databaseName;
 
         /// <summary>
         /// Gets or sets the name of the collection.
@@ -88,7 +124,8 @@ namespace NLog.Mongo
         /// <value>
         /// The name of the collection.
         /// </value>
-        public string CollectionName { get; set; }
+        public string CollectionName { get { return (_collectionName as SimpleLayout)?.Text; } set { _collectionName = value ?? string.Empty; } }
+        private Layout _collectionName;
 
         /// <summary>
         /// Gets or sets the size in bytes of the capped collection.
@@ -118,9 +155,9 @@ namespace NLog.Mongo
             if (!string.IsNullOrEmpty(ConnectionName))
                 ConnectionString = GetConnectionString(ConnectionName);
 
-            if (string.IsNullOrEmpty(ConnectionString))
+            var connectionString = _connectionString?.Render(_defaultLogEvent);
+            if (string.IsNullOrEmpty(connectionString))
                 throw new NLogConfigurationException("Can not resolve MongoDB ConnectionString. Please make sure the ConnectionString property is set.");
-
         }
 
         /// <summary>
@@ -136,14 +173,15 @@ namespace NLog.Mongo
 
             try
             {
-                var documents = logEvents.Select(e => CreateDocument(e.LogEvent));
+                if (_createDocumentDelegate == null)
+                    _createDocumentDelegate = e => CreateDocument(e.LogEvent);
 
+                var documents = logEvents.Select(_createDocumentDelegate);
                 var collection = GetCollection();
                 collection.InsertMany(documents);
 
-                foreach (var ev in logEvents)
-                    ev.Continuation(null);
-
+                for (int i = 0; i < logEvents.Count; ++i)
+                    logEvents[i].Continuation(null);
             }
             catch (Exception ex)
             {
@@ -152,8 +190,8 @@ namespace NLog.Mongo
                 if (ex.MustBeRethrownImmediately())
                     throw;
 
-                foreach (var ev in logEvents)
-                    ev.Continuation(ex);
+                for (int i = 0; i < logEvents.Count; ++i)
+                    logEvents[i].Continuation(ex);
 
                 if (ex.MustBeRethrown())
                     throw;
@@ -180,8 +218,7 @@ namespace NLog.Mongo
                 throw;
             }
         }
-
-
+       
         private BsonDocument CreateDocument(LogEventInfo logEvent)
         {
             var document = new BsonDocument();
@@ -189,11 +226,11 @@ namespace NLog.Mongo
                 AddDefaults(document, logEvent);
 
             // extra fields
-            foreach (var field in Fields)
+            for (int i = 0; i < Fields.Count; ++i)
             {
-                var value = GetValue(field, logEvent);
+                var value = GetValue(Fields[i], logEvent);
                 if (value != null)
-                    document[field.Name] = value;
+                    document[Fields[i].Name] = value;
             }
 
             AddProperties(document, logEvent);
@@ -216,38 +253,80 @@ namespace NLog.Mongo
 
             if (logEvent.Exception != null)
                 document.Add("Exception", CreateException(logEvent.Exception));
-
-
         }
 
         private void AddProperties(BsonDocument document, LogEventInfo logEvent)
         {
-            var propertiesDocument = new BsonDocument();
-            foreach (var field in Properties)
+            if (logEvent.HasProperties || Properties.Count > 0)
             {
-                string key = field.Name;
-                var value = GetValue(field, logEvent);
+                var propertiesDocument = new BsonDocument();
+                for (int i = 0; i < Properties.Count; ++i)
+                {
+                    string key = Properties[i].Name;
+                    var value = GetValue(Properties[i], logEvent);
 
-                if (value != null)
-                    propertiesDocument[key] = value;
+                    if (value != null)
+                        propertiesDocument[key] = value;
+                }
+
+                if (logEvent.HasProperties)
+                {
+                    foreach (var property in logEvent.Properties)
+                    {
+                        if (property.Key == null || property.Value == null)
+                            continue;
+
+                        string key = Convert.ToString(property.Key, CultureInfo.InvariantCulture);
+                        if (string.IsNullOrEmpty(key))
+                            continue;
+
+                        if (key.IndexOf('.') >= 0)
+                            key = key.Replace('.', '_');
+
+                        TypeCode typeCode = Convert.GetTypeCode(property.Value);
+                        BsonValue bsonValue = null;
+                        switch (typeCode)
+                        {
+                            case TypeCode.DateTime:
+                                bsonValue = new BsonDateTime((DateTime)property.Value);
+                                break;
+                            case TypeCode.Byte:
+                                bsonValue = new BsonInt32((Byte)property.Value);
+                                break;
+                            case TypeCode.SByte:
+                                bsonValue = new BsonInt32((SByte)property.Value);
+                                break;
+                            case TypeCode.Int16:
+                                bsonValue = new BsonInt32((Int16)property.Value);
+                                break;
+                            case TypeCode.UInt16:
+                                bsonValue = new BsonInt32((UInt16)property.Value);
+                                break;
+                            case TypeCode.Int32:
+                                bsonValue = new BsonInt32((Int32)property.Value);
+                                break;
+                            case TypeCode.UInt32:
+                                bsonValue = new BsonInt64((UInt32)property.Value);
+                                break;
+                            case TypeCode.Int64:
+                                bsonValue = new BsonInt64((Int64)property.Value);
+                                break;
+                            default:
+                                {
+                                    string value = Convert.ToString(property.Value, CultureInfo.InvariantCulture);
+                                    if (string.IsNullOrEmpty(value))
+                                        continue;
+                                    bsonValue = new BsonString(value);
+                                } break;
+                        }
+
+                        propertiesDocument[key] = bsonValue;
+                    }
+                }
+
+                if (propertiesDocument.ElementCount > 0)
+                    document.Add("Properties", propertiesDocument);
             }
-
-            var properties = logEvent.Properties ?? Enumerable.Empty<KeyValuePair<object, object>>();
-            foreach (var property in properties)
-            {
-                if (property.Key == null || property.Value == null)
-                    continue;
-
-                string key = Convert.ToString(property.Key, CultureInfo.InvariantCulture);
-                string value = Convert.ToString(property.Value, CultureInfo.InvariantCulture);
-
-                if (!string.IsNullOrEmpty(value))
-                    propertiesDocument[key] = new BsonString(value);
-            }
-
-            if (propertiesDocument.ElementCount > 0)
-                document.Add("Properties", propertiesDocument);
-
         }
 
         private BsonValue CreateException(Exception exception)
@@ -264,7 +343,9 @@ namespace NLog.Mongo
 #if !NETSTANDARD1_5
             if (exception is ExternalException external)
                 document.Add("ErrorCode", new BsonInt32(external.ErrorCode));
+            else if (exception.HResult != 0)
 #endif
+                document.Add("ErrorCode", new BsonInt32(exception.HResult));
 
             document.Add("Source", new BsonString(exception.Source));
 
@@ -286,16 +367,13 @@ namespace NLog.Mongo
 
         private BsonValue GetValue(MongoField field, LogEventInfo logEvent)
         {
-            var value = field.Layout.Render(logEvent);
-            if (string.IsNullOrWhiteSpace(value))
+            var value = (field.Layout != null ? RenderLogEvent(field.Layout, logEvent) : string.Empty).Trim();
+            if (string.IsNullOrEmpty(value))
                 return null;
-
-            value = value.Trim();
 
             if (string.IsNullOrEmpty(field.BsonType)
                 || string.Equals(field.BsonType, "String", StringComparison.OrdinalIgnoreCase))
                 return new BsonString(value);
-
 
             BsonValue bsonValue;
             if (string.Equals(field.BsonType, "Boolean", StringComparison.OrdinalIgnoreCase)
@@ -323,23 +401,32 @@ namespace NLog.Mongo
 
         private IMongoCollection<BsonDocument> GetCollection()
         {
+            string connectionString = _connectionString != null ? RenderLogEvent(_connectionString, _defaultLogEvent) : string.Empty;
+            string collectionName = _collectionName != null ? RenderLogEvent(_collectionName, _defaultLogEvent) : string.Empty;
+            string databaseName = _databaseName != null ? RenderLogEvent(_databaseName, _defaultLogEvent) : string.Empty;
+
+            if (string.IsNullOrEmpty(connectionString))
+                throw new NLogConfigurationException("Can not resolve MongoDB ConnectionString. Please make sure the ConnectionString property is set.");
+
             // cache mongo collection based on target name.
-            string key = string.Format("k|{0}|{1}|{2}",
-                ConnectionName ?? string.Empty,
-                ConnectionString ?? string.Empty,
-                CollectionName ?? string.Empty);
+            MongoConnectionKey key = new MongoConnectionKey(connectionString, collectionName, databaseName);
+            if (_collectionCache.TryGetValue(key, out var mongoCollection))
+                return mongoCollection;
 
             return _collectionCache.GetOrAdd(key, k =>
             {
                 // create collection
-                var mongoUrl = new MongoUrl(ConnectionString);
+                var mongoUrl = new MongoUrl(connectionString);
+
+                databaseName = !string.IsNullOrEmpty(databaseName) ? databaseName : (mongoUrl.DatabaseName ?? "NLog");
+                collectionName = !string.IsNullOrEmpty(collectionName) ? collectionName : "Log";
+                InternalLogger.Info("Creating MongoDB collection {0} in database {1}", collectionName, databaseName);
+
                 var client = new MongoClient(mongoUrl);
 
                 // Database name overrides connection string
-                var databaseName = DatabaseName ?? mongoUrl.DatabaseName ?? "NLog";
                 var database = client.GetDatabase(databaseName);
 
-                string collectionName = CollectionName ?? "Log";
                 if (!CappedCollectionSize.HasValue || CollectionExists(database, collectionName))
                     return database.GetCollection<BsonDocument>(collectionName);
 
