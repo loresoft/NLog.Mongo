@@ -308,9 +308,7 @@ namespace NLog.Mongo
 #if !NETSTANDARD1_5
             if (exception is ExternalException external)
                 document.Add("ErrorCode", new BsonInt32(external.ErrorCode));
-            else if (exception.HResult != 0)
 #endif
-                document.Add("ErrorCode", new BsonInt32(exception.HResult));
 
             document.Add("Source", new BsonString(exception.Source));
 
