@@ -20,11 +20,11 @@ namespace NLog.Mongo
     [Target("Mongo")]
     public class MongoTarget : Target
     {
-        struct MongoConnectionKey : IEquatable<MongoConnectionKey>
+        private struct MongoConnectionKey : IEquatable<MongoConnectionKey>
         {
-            readonly string ConnectionString;
-            readonly string CollectionName;
-            readonly string DatabaseName;
+            private readonly string ConnectionString;
+            private readonly string CollectionName;
+            private readonly string DatabaseName;
 
             public MongoConnectionKey(string connectionString, string collectionName, string databaseName)
             {
@@ -91,7 +91,11 @@ namespace NLog.Mongo
         /// <value>
         /// The connection name string.
         /// </value>
-        public string ConnectionString { get { return (_connectionString as SimpleLayout)?.Text; } set { _connectionString = value ?? string.Empty; } }
+        public string ConnectionString
+        {
+            get => (_connectionString as SimpleLayout)?.Text;
+            set => _connectionString = value ?? string.Empty;
+        }
         private Layout _connectionString;
 
         /// <summary>
@@ -116,7 +120,11 @@ namespace NLog.Mongo
         /// <value>
         /// The name of the database.
         /// </value>
-        public string DatabaseName { get { return (_databaseName as SimpleLayout)?.Text; } set { _databaseName = value ?? string.Empty; } }
+        public string DatabaseName
+        {
+            get => (_databaseName as SimpleLayout)?.Text;
+            set => _databaseName = value ?? string.Empty;
+        }
         private Layout _databaseName;
 
         /// <summary>
@@ -125,7 +133,11 @@ namespace NLog.Mongo
         /// <value>
         /// The name of the collection.
         /// </value>
-        public string CollectionName { get { return (_collectionName as SimpleLayout)?.Text; } set { _collectionName = value ?? string.Empty; } }
+        public string CollectionName
+        {
+            get => (_collectionName as SimpleLayout)?.Text;
+            set => _collectionName = value ?? string.Empty;
+        }
         private Layout _collectionName;
 
         /// <summary>
@@ -224,7 +236,7 @@ namespace NLog.Mongo
                 throw;
             }
         }
-       
+
         private BsonDocument CreateDocument(LogEventInfo logEvent)
         {
             var document = new BsonDocument();
@@ -317,7 +329,7 @@ namespace NLog.Mongo
             if (exception is ExternalException external)
                 document.Add("ErrorCode", new BsonInt32(external.ErrorCode));
 #endif
-
+            document.Add("HResult", new BsonInt32(exception.HResult));            
             document.Add("Source", new BsonString(exception.Source));
 
 #if !NETSTANDARD1_5
@@ -380,7 +392,7 @@ namespace NLog.Mongo
                 throw new NLogConfigurationException("Can not resolve MongoDB ConnectionString. Please make sure the ConnectionString property is set.");
 
             // cache mongo collection based on target name.
-            MongoConnectionKey key = new MongoConnectionKey(connectionString, collectionName, databaseName);
+            var key = new MongoConnectionKey(connectionString, collectionName, databaseName);
             if (_collectionCache.TryGetValue(key, out var mongoCollection))
                 return mongoCollection;
 
