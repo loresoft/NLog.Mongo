@@ -80,6 +80,8 @@ _field_ - Specifies a root level document field. There can be multiple fields sp
 
 _property_ - Specifies a dictionary property on the Properties field. There can be multiple properties specified.
 
+_includeEventProperties_ - Specifies if LogEventInfo Properties should be automatically included.  Defaults to true.
+
 ## Examples
 
 ### Default Configuration with Extra Properties
