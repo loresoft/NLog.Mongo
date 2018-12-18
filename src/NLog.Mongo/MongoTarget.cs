@@ -283,44 +283,9 @@ namespace NLog.Mongo
                         if (key.IndexOf('.') >= 0)
                             key = key.Replace('.', '_');
 
-                        TypeCode typeCode = Convert.GetTypeCode(property.Value);
-                        BsonValue bsonValue = null;
-                        switch (typeCode)
-                        {
-                            case TypeCode.DateTime:
-                                bsonValue = new BsonDateTime((DateTime)property.Value);
-                                break;
-                            case TypeCode.Byte:
-                                bsonValue = new BsonInt32((Byte)property.Value);
-                                break;
-                            case TypeCode.SByte:
-                                bsonValue = new BsonInt32((SByte)property.Value);
-                                break;
-                            case TypeCode.Int16:
-                                bsonValue = new BsonInt32((Int16)property.Value);
-                                break;
-                            case TypeCode.UInt16:
-                                bsonValue = new BsonInt32((UInt16)property.Value);
-                                break;
-                            case TypeCode.Int32:
-                                bsonValue = new BsonInt32((Int32)property.Value);
-                                break;
-                            case TypeCode.UInt32:
-                                bsonValue = new BsonInt64((UInt32)property.Value);
-                                break;
-                            case TypeCode.Int64:
-                                bsonValue = new BsonInt64((Int64)property.Value);
-                                break;
-                            default:
-                                {
-                                    string value = Convert.ToString(property.Value, CultureInfo.InvariantCulture);
-                                    if (string.IsNullOrEmpty(value))
-                                        continue;
-                                    bsonValue = new BsonString(value);
-                                } break;
-                        }
-
-                        propertiesDocument[key] = bsonValue;
+                        string value = Convert.ToString(property.Value, CultureInfo.InvariantCulture);
+                        if (!string.IsNullOrEmpty(value))
+                            propertiesDocument[key] = new BsonString(value);
                     }
                 }
 
