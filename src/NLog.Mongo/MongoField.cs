@@ -9,6 +9,7 @@ namespace NLog.Mongo
     /// A configuration item for MongoDB target.
     /// </summary>
     [NLogConfigurationItem]
+    [ThreadAgnostic]
     public sealed class MongoField 
     {
         /// <summary>
