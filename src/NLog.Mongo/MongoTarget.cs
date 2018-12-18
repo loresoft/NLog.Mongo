@@ -64,6 +64,7 @@ namespace NLog.Mongo
             Properties = new List<MongoField>();
             IncludeDefaults = true;
             OptimizeBufferReuse = true;
+            IncludeEventProperties = true;
         }
 
         /// <summary>
@@ -142,6 +143,11 @@ namespace NLog.Mongo
         /// The capped collection max items.
         /// </value>
         public long? CappedCollectionMaxItems { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether to include per-event properties in the payload sent to MongoDB
+        /// </summary>
+        public bool IncludeEventProperties { get; set; }
 
         /// <summary>
         /// Initializes the target. Can be used by inheriting classes
@@ -269,7 +275,7 @@ namespace NLog.Mongo
                         propertiesDocument[key] = value;
                 }
 
-                if (logEvent.HasProperties)
+                if (IncludeEventProperties && logEvent.HasProperties)
                 {
                     foreach (var property in logEvent.Properties)
                     {
@@ -280,12 +286,14 @@ namespace NLog.Mongo
                         if (string.IsNullOrEmpty(key))
                             continue;
 
+                        string value = Convert.ToString(property.Value, CultureInfo.InvariantCulture);
+                        if (string.IsNullOrEmpty(value))
+                            continue;
+
                         if (key.IndexOf('.') >= 0)
                             key = key.Replace('.', '_');
 
-                        string value = Convert.ToString(property.Value, CultureInfo.InvariantCulture);
-                        if (!string.IsNullOrEmpty(value))
-                            propertiesDocument[key] = new BsonString(value);
+                        propertiesDocument[key] = new BsonString(value);
                     }
                 }
 
