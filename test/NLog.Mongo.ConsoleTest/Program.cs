@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using NLog.Fluent;
 
 namespace NLog.Mongo.ConsoleTest
@@ -11,7 +7,7 @@ namespace NLog.Mongo.ConsoleTest
     public class Program
     {
         private static readonly NLog.Logger _logger = NLog.LogManager.GetCurrentClassLogger();
-        
+
         public static void Main(string[] args)
         {
             int k = 42;

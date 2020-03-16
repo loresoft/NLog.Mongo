@@ -1,5 +1,4 @@
-﻿using System;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using NLog.Config;
 using NLog.Layouts;
 
@@ -10,12 +9,12 @@ namespace NLog.Mongo
     /// </summary>
     [NLogConfigurationItem]
     [ThreadAgnostic]
-    public sealed class MongoField 
+    public sealed class MongoField
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="MongoField"/> class.
         /// </summary>
-        public MongoField() 
+        public MongoField()
             : this(null, null, "String")
         {
         }
@@ -60,7 +59,7 @@ namespace NLog.Mongo
         /// </value>
         [RequiredParameter]
         public Layout Layout { get; set; }
-        
+
         /// <summary>
         /// Gets or sets the bson type of the field. Possible values are Boolean, DateTime, Double, Int32, Int64 and String
         /// </summary>

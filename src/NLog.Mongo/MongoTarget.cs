@@ -329,7 +329,7 @@ namespace NLog.Mongo
             if (exception is ExternalException external)
                 document.Add("ErrorCode", new BsonInt32(external.ErrorCode));
 #endif
-            document.Add("HResult", new BsonInt32(exception.HResult));            
+            document.Add("HResult", new BsonInt32(exception.HResult));
             document.Add("Source", new BsonString(exception.Source));
 
 #if !NETSTANDARD1_5

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <VersionPrefix>4.4.0.0</VersionPrefix>
-    <TargetFramework>net45</TargetFramework>
+    <TargetFramework>net452</TargetFramework>
     <RuntimeIdentifier>win7-x86</RuntimeIdentifier>
     <AssemblyName>NLog.Mongo.ConsoleTest</AssemblyName>
     <OutputType>Exe</OutputType>
@@ -28,11 +28,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MongoDB.Driver" Version="2.7.2" />
+    <PackageReference Include="MongoDB.Driver" Version="2.10.2" />
     <PackageReference Include="NLog" Version="4.6.8" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
+  <ItemGroup>
     <Reference Include="System.Configuration" />
     <Reference Include="System" />
     <Reference Include="Microsoft.CSharp" />
