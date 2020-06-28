@@ -403,27 +403,37 @@ namespace NLog.Mongo
 
                 databaseName = !string.IsNullOrEmpty(databaseName) ? databaseName : (mongoUrl.DatabaseName ?? "NLog");
                 collectionName = !string.IsNullOrEmpty(collectionName) ? collectionName : "Log";
-                InternalLogger.Info("Creating MongoDB collection {0} in database {1}", collectionName, databaseName);
+                InternalLogger.Info("Connecting to MongoDB collection {0} in database {1}", collectionName, databaseName);
 
                 var client = new MongoClient(mongoUrl);
 
                 // Database name overrides connection string
                 var database = client.GetDatabase(databaseName);
 
-                if (!CappedCollectionSize.HasValue || CollectionExists(database, collectionName))
-                    return database.GetCollection<BsonDocument>(collectionName);
-
-                // create capped
-                var options = new CreateCollectionOptions
+                if (CappedCollectionSize.HasValue)
                 {
-                    Capped = true,
-                    MaxSize = CappedCollectionSize,
-                    MaxDocuments = CappedCollectionMaxItems
-                };
+                    InternalLogger.Debug("Checking for existing MongoDB collection {0} in database {1}", collectionName, databaseName);
+                    
+                    var filterOptions = new ListCollectionNamesOptions { Filter = new BsonDocument("name", collectionName) };
+                    if (!database.ListCollectionNames(filterOptions).Any())
+                    {
+                        InternalLogger.Debug("Creating new MongoDB collection {0} in database {1}", collectionName, databaseName);
 
-                database.CreateCollection(collectionName, options);
+                        // create capped
+                        var options = new CreateCollectionOptions
+                        {
+                            Capped = true,
+                            MaxSize = CappedCollectionSize,
+                            MaxDocuments = CappedCollectionMaxItems
+                        };
 
-                return database.GetCollection<BsonDocument>(collectionName);
+                        database.CreateCollection(collectionName, options);
+                    }
+                }
+
+                var collection = database.GetCollection<BsonDocument>(collectionName);
+                InternalLogger.Debug("Retrieved MongoDB collection {0} from database {1}", collectionName, databaseName);
+                return collection;
             });
         }
 
@@ -446,16 +456,6 @@ namespace NLog.Mongo
 
             return connectionString;
 #endif
-        }
-
-        private static bool CollectionExists(IMongoDatabase database, string collectionName)
-        {
-            var options = new ListCollectionsOptions
-            {
-                Filter = Builders<BsonDocument>.Filter.Eq("name", collectionName)
-            };
-
-            return database.ListCollections(options).ToEnumerable().Any();
         }
     }
 }
