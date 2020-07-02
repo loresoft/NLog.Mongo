@@ -28,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="MongoDB.Driver" Version="2.10.2" />
+    <PackageReference Include="MongoDB.Driver" Version="2.10.4" />
     <PackageReference Include="NLog" Version="4.7.2" />
   </ItemGroup>
 
