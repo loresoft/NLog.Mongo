@@ -232,7 +232,6 @@ namespace NLog.Mongo
             catch (Exception ex)
             {
                 InternalLogger.Error("Error when writing to MongoDB {0}", ex);
-
                 throw;
             }
         }
@@ -275,7 +274,7 @@ namespace NLog.Mongo
 
         private void AddProperties(BsonDocument document, LogEventInfo logEvent)
         {
-            if (logEvent.HasProperties || Properties.Count > 0)
+            if ((IncludeEventProperties && logEvent.HasProperties) || Properties.Count > 0)
             {
                 var propertiesDocument = new BsonDocument();
                 for (int i = 0; i < Properties.Count; ++i)
@@ -319,6 +318,19 @@ namespace NLog.Mongo
             if (exception == null)
                 return BsonNull.Value;
 
+            if (exception is AggregateException aggregateException)
+            {
+                aggregateException = aggregateException.Flatten();
+                if (aggregateException.InnerExceptions?.Count == 1)
+                {
+                    exception = aggregateException.InnerExceptions[0];
+                }
+                else
+                {
+                    exception = aggregateException;
+                }
+            }
+
             var document = new BsonDocument();
             document.Add("Message", new BsonString(exception.Message));
             document.Add("BaseMessage", new BsonString(exception.GetBaseException().Message));
@@ -354,32 +366,30 @@ namespace NLog.Mongo
             if (string.IsNullOrEmpty(value))
                 return null;
 
-            if (string.IsNullOrEmpty(field.BsonType)
-                || string.Equals(field.BsonType, "String", StringComparison.OrdinalIgnoreCase))
-                return new BsonString(value);
+            BsonValue bsonValue = null;
+            switch (field.BsonTypeCode)
+            {
+                case TypeCode.Boolean:
+                    MongoConvert.TryBoolean(value, out bsonValue);
+                    break;
+                case TypeCode.DateTime:
+                    MongoConvert.TryDateTime(value, out bsonValue);
+                    break;
+                case TypeCode.Double:
+                    MongoConvert.TryDouble(value, out bsonValue);
+                    break;
+                case TypeCode.Int32:
+                    MongoConvert.TryInt32(value, out bsonValue);
+                    break;
+                case TypeCode.Int64:
+                    MongoConvert.TryInt64(value, out bsonValue);
+                    break;
+                case TypeCode.Object:
+                    MongoConvert.TryJsonObject(value, out bsonValue);
+                    break;
+            }
 
-            BsonValue bsonValue;
-            if (string.Equals(field.BsonType, "Boolean", StringComparison.OrdinalIgnoreCase)
-                && MongoConvert.TryBoolean(value, out bsonValue))
-                return bsonValue;
-
-            if (string.Equals(field.BsonType, "DateTime", StringComparison.OrdinalIgnoreCase)
-                && MongoConvert.TryDateTime(value, out bsonValue))
-                return bsonValue;
-
-            if (string.Equals(field.BsonType, "Double", StringComparison.OrdinalIgnoreCase)
-                && MongoConvert.TryDouble(value, out bsonValue))
-                return bsonValue;
-
-            if (string.Equals(field.BsonType, "Int32", StringComparison.OrdinalIgnoreCase)
-                && MongoConvert.TryInt32(value, out bsonValue))
-                return bsonValue;
-
-            if (string.Equals(field.BsonType, "Int64", StringComparison.OrdinalIgnoreCase)
-                && MongoConvert.TryInt64(value, out bsonValue))
-                return bsonValue;
-
-            return new BsonString(value);
+            return bsonValue ?? new BsonString(value);
         }
 
         private IMongoCollection<BsonDocument> GetCollection()
@@ -436,7 +446,6 @@ namespace NLog.Mongo
                 return collection;
             });
         }
-
 
         private static string GetConnectionString(string connectionName)
         {

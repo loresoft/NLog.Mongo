@@ -22,7 +22,7 @@ namespace NLog.Mongo
             bool result;
             if (bool.TryParse(value, out result))
             {
-                bsonValue = new BsonBoolean(true);
+                bsonValue = new BsonBoolean(result);
                 return true;
             }
 
@@ -108,5 +108,29 @@ namespace NLog.Mongo
             return r;
         }
 
+        /// <summary>Try to convert the string to a <see cref="BsonDocument"/>.</summary>
+        /// <param name="value">The value to convert.</param>
+        /// <param name="bsonValue">The BsonValue result.</param>
+        /// <returns><c>true</c> if the value was converted; otherwise <c>false</c>.</returns>
+        /// <remarks>
+        /// BsonDocument will by default convert normal Json-formatted DateTime-/DateTimerOffset-values as BsonString-values.
+        /// BsonDocument has special requirements for recognizing DateTime-/DateTimerOffset-values.
+        /// </remarks>
+        public static bool TryJsonObject(this string value, out BsonValue bsonValue)
+        {
+            bsonValue = null;
+            if (value == null)
+                return false;
+
+            try
+            {
+                bsonValue = BsonDocument.Parse(value);
+                return bsonValue != null;
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
 }

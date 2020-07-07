@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using NLog.Config;
 using NLog.Layouts;
 
@@ -67,6 +68,43 @@ namespace NLog.Mongo
         /// The bson type of the field..
         /// </value>
         [DefaultValue("String")]
-        public string BsonType { get; set; }
+        public string BsonType
+        {
+            get => _bsonType;
+            set
+            { 
+                _bsonType = value;
+                BsonTypeCode = ConvertToTypeCode(value?.Trim() ?? string.Empty);
+            }
+        }
+        private string _bsonType;
+
+        internal TypeCode BsonTypeCode { get; private set; } = TypeCode.String;
+
+        private TypeCode ConvertToTypeCode(string bsonType)
+        {
+            if (string.IsNullOrEmpty(bsonType) || string.Equals(bsonType, "String", StringComparison.OrdinalIgnoreCase))
+                return TypeCode.String;
+
+            if (string.Equals(bsonType, "Boolean", StringComparison.OrdinalIgnoreCase))
+                return TypeCode.Boolean;
+
+            if (string.Equals(bsonType, "DateTime", StringComparison.OrdinalIgnoreCase))
+                return TypeCode.DateTime;
+
+            if (string.Equals(bsonType, "Double", StringComparison.OrdinalIgnoreCase))
+                return TypeCode.Double;
+
+            if (string.Equals(bsonType, "Int32", StringComparison.OrdinalIgnoreCase))
+                return TypeCode.Int32;
+
+            if (string.Equals(bsonType, "Int64", StringComparison.OrdinalIgnoreCase))
+                return TypeCode.Int64;
+
+            if (string.Equals(bsonType, "Object", StringComparison.OrdinalIgnoreCase))
+                return TypeCode.Object;
+
+            return TypeCode.String;
+        }
     }
 }
