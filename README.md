@@ -40,7 +40,10 @@ In your Package Manager settings add the following package source for developmen
           cappedCollectionSize="Long"
           cappedCollectionMaxItems="Long"
           databaseName="String"
-          includeDefaults="Boolean">
+          includeDefaults="Boolean"
+          useTls="Boolean"
+          clientCertificate="String"
+          clientCertificatePassword="String">
     
     <!-- repeated --> 
     <field name="String" layout="Layout" bsonType="Boolean|DateTime|Double|Int32|Int64|String"  />
@@ -64,6 +67,12 @@ _connectionName_ - The name of the connection string to get from the config file
 _connectionString_ - Connection string. When provided, it overrides the values specified in connectionName. 
 
 _databaseName_ - The name of the database, overrides connection string database.
+
+_useTls_ - If a Tls connection should be established.
+
+_clientCertificate_ - The certificate to use when establishing a Tls connection.
+
+_clientCertificatePassword- - The certificate's password.
 
 ### Collection Options
 _collectionName_ - The name of the MongoDB collection to write logs to.  

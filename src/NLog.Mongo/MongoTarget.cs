@@ -3,6 +3,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using MongoDB.Bson;
@@ -431,12 +433,19 @@ namespace NLog.Mongo
                 {
                     var cert = new X509Certificate2(ClientCertificate, ClientCertificatePassword);
 
+                    if (cert == null)
+                    {
+                        throw new InvalidOperationException("Unable to load certificate");
+                    }
+
                     settings.SslSettings = new SslSettings
                     {
                         ClientCertificates = new[] { cert },
                     };
                     UseTls = true;                    
                 }
+
+                var client = new MongoClient(settings);
 
                 // Database name overrides connection string
                 var database = client.GetDatabase(databaseName);
