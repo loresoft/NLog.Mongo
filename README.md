@@ -133,7 +133,7 @@ _includeEventProperties_ - Specifies if LogEventInfo Properties should be automa
 }
 ```
 
-### Complete Custom Document
+### Custom Document Fields
 
 #### NLog.config target
 
@@ -158,7 +158,7 @@ _includeEventProperties_ - Specifies if LogEventInfo Properties should be automa
 </target>
 ```
 
-#### Custom Output JSON
+#### Custom Document Fields JSON output
 
 ```JSON
 {
@@ -171,5 +171,54 @@ _includeEventProperties_ - Specifies if LogEventInfo Properties should be automa
     "ProcessID" : 26604,
     "ProcessName" : "C:\\Projects\\github\\NLog.Mongo\\Source\\NLog.Mongo.ConsoleTest\\bin\\Debug\\v4.5\\NLog.Mongo.ConsoleTest.exe",
     "UserName" : "pwelter"
+}
+```
+
+### Custom Object Properties
+
+#### NLog.config target
+
+```xml
+<target xsi:type="Mongo"
+        name="mongoCustomJsonProperties"
+        includeEventProperties="false"
+        connectionString="mongodb://localhost"
+        collectionName="CustomLog"
+        databaseName="Logging"
+        cappedCollectionSize="26214400">
+    <field name="Properties" bsonType="Object">
+        <layout type="JsonLayout" includeAllProperties="true" includeMdlc="true" maxRecursionLimit="10">
+            <attribute name="ThreadID" layout="${threadid}" encode="false" />
+            <attribute name="ProcessID" layout="${processid}" encode="false" />
+            <attribute name="ProcessName" layout="${processname:fullName=false}" />
+        </layout>
+    </field>
+</target>
+```
+
+#### Custom Object Properties JSON output
+
+```JSON
+{
+    "_id" : ObjectId("5184219b545eb455aca34390"),
+    "Date" : ISODate("2013-05-03T20:44:11Z"),
+    "Level" : "Error",
+    "Logger" : "NLog.Mongo.ConsoleTest.Program",
+    "Message" : "Error reading file 'blah.txt'.",
+    "Exception" : {
+        "Message" : "Could not find file 'C:\\Projects\\github\\NLog.Mongo\\Source\\NLog.Mongo.ConsoleTest\\bin\\Debug\\blah.txt'.",
+        "Text" : "System.IO.FileNotFoundException: Could not find file 'C:\\Projects\\github\\NLog.Mongo\\Source\\NLog.Mongo.ConsoleTest\\bin\\Debug\\blah.txt' ...",
+        "Type" : "System.IO.FileNotFoundException",
+        "Source" : "mscorlib",
+        "MethodName" : "WinIOError",
+        "ModuleName" : "mscorlib",
+        "ModuleVersion" : "4.0.0.0"
+    },
+    "Properties" : {
+        "ThreadID" : 10,
+        "ProcessID" : 21932,
+        "ProcessName" : "NLog.Mongo.ConsoleTest.exe",
+        "Product": { "Name": "Foo", "Id": 42 }
+    }
 }
 ```
