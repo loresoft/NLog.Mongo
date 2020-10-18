@@ -195,7 +195,7 @@ namespace NLog.Mongo
                     _createDocumentDelegate = e => CreateDocument(e.LogEvent);
 
                 var documents = logEvents.Select(_createDocumentDelegate);
-                var collection = GetCollection();
+                var collection = GetCollection(logEvents[logEvents.Count - 1].LogEvent.TimeStamp);
                 collection.InsertMany(documents);
 
                 for (int i = 0; i < logEvents.Count; ++i)
@@ -226,7 +226,7 @@ namespace NLog.Mongo
             try
             {
                 var document = CreateDocument(logEvent);
-                var collection = GetCollection();
+                var collection = GetCollection(logEvent.TimeStamp);
                 collection.InsertOne(document);
             }
             catch (Exception ex)
@@ -392,8 +392,11 @@ namespace NLog.Mongo
             return bsonValue ?? new BsonString(value);
         }
 
-        private IMongoCollection<BsonDocument> GetCollection()
+        private IMongoCollection<BsonDocument> GetCollection(DateTime timestamp)
         {
+            if (_defaultLogEvent.TimeStamp < timestamp)
+                _defaultLogEvent.TimeStamp = timestamp;
+
             string connectionString = _connectionString != null ? RenderLogEvent(_connectionString, _defaultLogEvent) : string.Empty;
             string collectionName = _collectionName != null ? RenderLogEvent(_collectionName, _defaultLogEvent) : string.Empty;
             string databaseName = _databaseName != null ? RenderLogEvent(_databaseName, _defaultLogEvent) : string.Empty;
