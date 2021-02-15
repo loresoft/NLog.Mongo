@@ -22,7 +22,7 @@ build_script:
   - dotnet pack NLog.Mongo.sln --configuration Release --include-symbols --include-source
 
 artifacts:
-- path: artifacts\*.nupkg
+- path: artifacts\*.*nupkg
   name: Packages
 
 deploy:

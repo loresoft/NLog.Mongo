@@ -10,14 +10,30 @@
 
   <PropertyGroup Label="Package">
     <Description>NLog MongoDB target</Description>
-    <Copyright>Copyright © 2020 LoreSoft</Copyright>
+    <Copyright>Copyright © 2021 LoreSoft</Copyright>
     <Authors>LoreSoft</Authors>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageTags>NLog;Logging;MongoDB</PackageTags>
     <PackageOutputPath>$(SolutionDir)artifacts</PackageOutputPath>
     <PackageProjectUrl>https://github.com/loresoft/NLog.Mongo</PackageProjectUrl>
-    <PackageLicenseUrl>https://raw.githubusercontent.com/loresoft/NLog.Mongo/master/LICENSE</PackageLicenseUrl>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageIcon>logo.png</PackageIcon>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/loresoft/NLog.Mongo</RepositoryUrl>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include=".\..\..\LICENSE">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include=".\..\..\logo.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
+
 </Project>
