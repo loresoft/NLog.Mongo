@@ -342,17 +342,20 @@ namespace NLog.Mongo
                 document.Add("ErrorCode", new BsonInt32(external.ErrorCode));
 #endif
             document.Add("HResult", new BsonInt32(exception.HResult));
-            document.Add("Source", new BsonString(exception.Source));
+            document.Add("Source", new BsonString(exception.Source ?? string.Empty));
 
 #if !NETSTANDARD1_5
             var method = exception.TargetSite;
             if (method != null)
             {
-                document.Add("MethodName", new BsonString(method.Name));
+                document.Add("MethodName", new BsonString(method.Name ?? string.Empty));
 
-                AssemblyName assembly = method.Module.Assembly.GetName();
-                document.Add("ModuleName", new BsonString(assembly.Name));
-                document.Add("ModuleVersion", new BsonString(assembly.Version.ToString()));
+                AssemblyName assembly = method.Module?.Assembly?.GetName();
+                if (assembly != null)
+                {
+                    document.Add("ModuleName", new BsonString(assembly.Name));
+                    document.Add("ModuleVersion", new BsonString(assembly.Version.ToString()));
+                }
             }
 #endif
 
