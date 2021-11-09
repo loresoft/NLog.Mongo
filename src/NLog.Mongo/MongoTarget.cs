@@ -5,6 +5,9 @@ using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+#if NETSTANDARD1_5 || NETSTANDARD2_0
+using Microsoft.Extensions.Configuration;
+#endif
 using MongoDB.Bson;
 using MongoDB.Driver;
 using NLog.Common;
@@ -459,7 +462,17 @@ namespace NLog.Mongo
                 throw new ArgumentNullException(nameof(connectionName));
 
 #if NETSTANDARD1_5 || NETSTANDARD2_0
-            return null;
+            var environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+            var connectionString = new ConfigurationBuilder()
+                .SetBasePath(AppContext.BaseDirectory)
+                .AddJsonFile("appsettings.json")
+                .AddJsonFile($"appsettings.{environment}.json")
+                .Build()
+                .GetConnectionString(connectionName);
+            if (string.IsNullOrEmpty(connectionString))
+                throw new NLogConfigurationException($"The connection string '{connectionName}' in the appsettings.json or appsettings.{environment}.json files does not contain the required value.");
+
+            return connectionString;
 #else
             var settings = System.Configuration.ConfigurationManager.ConnectionStrings[connectionName];
             if (settings == null)
