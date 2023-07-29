@@ -6,6 +6,8 @@ Writes NLog messages to MongoDB.
 
 [![NuGet Version](https://img.shields.io/nuget/v/NLog.Mongo.svg?style=flat-square)](https://www.nuget.org/packages/NLog.Mongo/) 
 
+[![Coverage Status](https://coveralls.io/repos/github/loresoft/NLog.Mongo/badge.svg?branch=master)](https://coveralls.io/github/loresoft/NLog.Mongo?branch=master)
+
 ## Download
 
 The NLog.Mongo library is available on nuget.org via package name `NLog.Mongo`.
