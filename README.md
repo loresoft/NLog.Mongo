@@ -2,7 +2,7 @@
 
 Writes NLog messages to MongoDB.
 
-[![Build status](https://ci.appveyor.com/api/projects/status/papk0yl4xf7agyxt)](https://ci.appveyor.com/project/LoreSoft/nlog-mongo)
+[![Build status](https://github.com/loresoft/NLog.Mongo/workflows/Build/badge.svg)](https://github.com/loresoft/NLog.Mongo/actions)
 
 [![NuGet Version](https://img.shields.io/nuget/v/NLog.Mongo.svg?style=flat-square)](https://www.nuget.org/packages/NLog.Mongo/) 
 
@@ -16,13 +16,6 @@ To install NLog.Mongo, run the following command in the Package Manager Console
     
 More information about NuGet package avaliable at
 <https://nuget.org/packages/NLog.Mongo>
-
-## Development Builds
-
-Development builds are available on the myget.org feed.  A development build is promoted to the main NuGet feed when it's determined to be stable. 
-
-In your Package Manager settings add the following package source for development builds:
-<http://www.myget.org/F/loresoft/>
 
 ## Configuration Syntax
 
