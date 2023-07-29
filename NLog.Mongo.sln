@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29905.134
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33829.357
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NLog.Mongo", "src\NLog.Mongo\NLog.Mongo.csproj", "{97D08F95-F710-4AF1-A49D-D2CFF770E764}"
 EndProject
@@ -8,11 +8,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NLog.Mongo.ConsoleTest", "t
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{061EE777-D34B-43A8-AEFD-4557D39A9C94}"
 	ProjectSection(SolutionItems) = preProject
-		appveyor.yml = appveyor.yml
-		build\common.props = build\common.props
-		build\sourcelink.props = build\sourcelink.props
-		build\version.props = build\version.props
+		coverlet.runsettings = coverlet.runsettings
+		src\Directory.Build.props = src\Directory.Build.props
+		.github\workflows\dotnet.yml = .github\workflows\dotnet.yml
+		README.md = README.md
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NLog.Mongo.Tests", "test\NLog.Mongo.Tests\NLog.Mongo.Tests.csproj", "{AEBC78A4-8A9B-4257-A1E4-46E6297667BF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -48,6 +50,18 @@ Global
 		{10901848-3067-4CB7-8B45-5FB1903CF57D}.Release|x64.Build.0 = Release|Any CPU
 		{10901848-3067-4CB7-8B45-5FB1903CF57D}.Release|x86.ActiveCfg = Release|Any CPU
 		{10901848-3067-4CB7-8B45-5FB1903CF57D}.Release|x86.Build.0 = Release|Any CPU
+		{AEBC78A4-8A9B-4257-A1E4-46E6297667BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AEBC78A4-8A9B-4257-A1E4-46E6297667BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AEBC78A4-8A9B-4257-A1E4-46E6297667BF}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{AEBC78A4-8A9B-4257-A1E4-46E6297667BF}.Debug|x64.Build.0 = Debug|Any CPU
+		{AEBC78A4-8A9B-4257-A1E4-46E6297667BF}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{AEBC78A4-8A9B-4257-A1E4-46E6297667BF}.Debug|x86.Build.0 = Debug|Any CPU
+		{AEBC78A4-8A9B-4257-A1E4-46E6297667BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AEBC78A4-8A9B-4257-A1E4-46E6297667BF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AEBC78A4-8A9B-4257-A1E4-46E6297667BF}.Release|x64.ActiveCfg = Release|Any CPU
+		{AEBC78A4-8A9B-4257-A1E4-46E6297667BF}.Release|x64.Build.0 = Release|Any CPU
+		{AEBC78A4-8A9B-4257-A1E4-46E6297667BF}.Release|x86.ActiveCfg = Release|Any CPU
+		{AEBC78A4-8A9B-4257-A1E4-46E6297667BF}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

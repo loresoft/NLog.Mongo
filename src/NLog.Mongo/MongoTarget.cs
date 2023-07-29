@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
@@ -63,7 +63,6 @@ namespace NLog.Mongo
             Fields = new List<MongoField>();
             Properties = new List<MongoField>();
             IncludeDefaults = true;
-            OptimizeBufferReuse = true;
             IncludeEventProperties = true;
         }
 
