@@ -5,7 +5,7 @@
 
   <ItemGroup>
     <PackageReference Include="MongoDB.Driver" Version="2.21.0" />
-    <PackageReference Include="NLog" Version="5.2.3" />
+    <PackageReference Include="NLog" Version="5.2.5" />
   </ItemGroup>
 
 </Project>
