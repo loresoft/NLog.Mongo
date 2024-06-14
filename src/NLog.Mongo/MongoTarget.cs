@@ -3,6 +3,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using MongoDB.Bson;
@@ -159,6 +161,26 @@ namespace NLog.Mongo
         /// Gets or sets a value indicating whether to include per-event properties in the payload sent to MongoDB
         /// </summary>
         public bool IncludeEventProperties { get; set; }
+
+        /// <summary>
+        /// Gets or sets if TLS should be used when connecting to MongoDB
+        /// </summary>
+        public bool UseTls { get; set; }
+
+        /// <summary>
+        /// Gets or sets the client certificate to use when connecting to MongoDB
+        /// </summary>
+        public string ClientCertificate { get; set; }
+
+        /// <summary>
+        /// Gets or sets the client certificate password to use when connecting to MongoDB
+        /// </summary>
+        public string ClientCertificatePassword { get; set; }
+
+        /// <summary>
+        /// Gets or sets the Check Certificate Revocation when connecting to MongoDB
+        /// </summary>
+        public bool? CheckCertificateRevocation { get; set; }
 
         /// <summary>
         /// Initializes the target. Can be used by inheriting classes
@@ -419,8 +441,26 @@ namespace NLog.Mongo
                 databaseName = !string.IsNullOrEmpty(databaseName) ? databaseName : (mongoUrl.DatabaseName ?? "NLog");
                 collectionName = !string.IsNullOrEmpty(collectionName) ? collectionName : "Log";
                 InternalLogger.Info("Connecting to MongoDB collection {0} in database {1}", collectionName, databaseName);
+                
+                var settings = MongoClientSettings.FromUrl(mongoUrl);
 
-                var client = new MongoClient(mongoUrl);
+                if (UseTls)
+                {
+                    var cert = new X509Certificate2(ClientCertificate, ClientCertificatePassword);
+
+                    if (cert == null)
+                    {
+                        throw new InvalidOperationException("Unable to load certificate");
+                    }
+
+                    settings.SslSettings = new SslSettings
+                    {
+                        ClientCertificates = new[] { cert },
+                    };
+                    UseTls = true;                    
+                }
+
+                var client = new MongoClient(settings);
 
                 // Database name overrides connection string
                 var database = client.GetDatabase(databaseName);
