@@ -160,6 +160,32 @@ public class MongoTarget : Target
     public bool IncludeEventProperties { get; set; }
 
     /// <summary>
+    ///  Gets or sets the suffix for the collection name in case of multi tenants application.
+    /// </summary>
+    /// <value>
+    /// The name of the property to use as a suffix.
+    /// </value>
+    public string CollectionSuffixProperty
+    {
+        get => (_collectionSuffixProperty as SimpleLayout)?.Text;
+        set => _collectionSuffixProperty = value ?? string.Empty;
+    }
+    private Layout _collectionSuffixProperty;
+
+    /// <summary>
+    ///  Gets or sets the suffix for the database name in case of multi tenants application.
+    /// </summary>
+    /// <value>
+    /// The name of the property to use as a suffix.
+    /// </value>
+    public string DatabaseSuffixProperty
+    {
+        get => (_databaseSuffixProperty as SimpleLayout)?.Text;
+        set => _databaseSuffixProperty = value ?? string.Empty;
+    }
+    private Layout _databaseSuffixProperty;
+
+    /// <summary>
     /// Initializes the target. Can be used by inheriting classes
     /// to initialize logging.
     /// </summary>
@@ -190,14 +216,30 @@ public class MongoTarget : Target
         try
         {
             if (_createDocumentDelegate == null)
+            {
                 _createDocumentDelegate = e => CreateDocument(e.LogEvent);
+            }
 
             var documents = logEvents.Select(_createDocumentDelegate);
-            var collection = GetCollection(logEvents[logEvents.Count - 1].LogEvent.TimeStamp);
-            collection.InsertMany(documents);
 
-            for (int i = 0; i < logEvents.Count; ++i)
-                logEvents[i].Continuation(null);
+            var grouped = logEvents
+                .Zip(documents, (eventInfo, bsonDocument) => (EventInfo: eventInfo, Document: bsonDocument))
+                .GroupBy(z => GetSuffixOrDefault(z.Document));
+
+            foreach (var group in grouped)
+            {
+                var suffix = group.Key;
+                var items = group.ToArray();
+                var timestamp = items.Last().EventInfo.LogEvent.TimeStamp;
+
+                var collection = GetCollection(timestamp, suffix);
+                collection.InsertMany(items.Select(i => i.Document));
+
+                foreach (var (eventInfo, document) in items)
+                {
+                    SetEventConfigurationToNull(eventInfo);
+                }
+            }
         }
         catch (Exception ex)
         {
@@ -214,6 +256,32 @@ public class MongoTarget : Target
         }
     }
 
+    private static AsyncLogEventInfo SetEventConfigurationToNull(AsyncLogEventInfo e)
+    {
+        e.Continuation(null);
+        return e;
+    }
+
+    private (string DatabaseSuffix, string CollectionSuffix) GetSuffixOrDefault(BsonDocument document, string defaultValue = "")
+    {
+        string databaseSuffix = GetSuffixValueOrDefault(document, defaultValue, DatabaseSuffixProperty);
+        string collectionSuffix = GetSuffixValueOrDefault(document, defaultValue, CollectionSuffixProperty);
+
+        return (databaseSuffix, collectionSuffix);
+    }
+
+    private static string GetSuffixValueOrDefault(BsonDocument document, string defaultValue, string suffixPropertyName)
+    {
+        var suffixPresent = !string.IsNullOrWhiteSpace(suffixPropertyName);
+        if (suffixPresent)
+        {
+            document.TryGetValue(suffixPropertyName, out var propertyValue);
+            return propertyValue?.ToString() ?? defaultValue;
+        }
+
+        return defaultValue;
+    }
+
     /// <summary>
     /// Writes logging event to the log target.
     /// classes.
@@ -224,7 +292,8 @@ public class MongoTarget : Target
         try
         {
             var document = CreateDocument(logEvent);
-            var collection = GetCollection(logEvent.TimeStamp);
+            var suffix = GetSuffixOrDefault(document);
+            var collection = GetCollection(logEvent.TimeStamp, suffix);
             collection.InsertOne(document);
         }
         catch (Exception ex)
@@ -393,14 +462,17 @@ public class MongoTarget : Target
         return bsonValue ?? new BsonString(value);
     }
 
-    private IMongoCollection<BsonDocument> GetCollection(DateTime timestamp)
+    private IMongoCollection<BsonDocument> GetCollection(DateTime timestamp, (string Database, string Collection) suffix)
     {
         if (_defaultLogEvent.TimeStamp < timestamp)
             _defaultLogEvent.TimeStamp = timestamp;
 
+        Layout collectionNameWithSuffix = GetCollectionNameWithSuffix(suffix.Collection);
+        Layout databaseNameWithSuffix = GetDatabaseNameWithSuffix(suffix.Database);
+
         string connectionString = _connectionString != null ? RenderLogEvent(_connectionString, _defaultLogEvent) : string.Empty;
-        string collectionName = _collectionName != null ? RenderLogEvent(_collectionName, _defaultLogEvent) : string.Empty;
-        string databaseName = _databaseName != null ? RenderLogEvent(_databaseName, _defaultLogEvent) : string.Empty;
+        string collectionName = collectionNameWithSuffix != null ? RenderLogEvent(collectionNameWithSuffix, _defaultLogEvent) : string.Empty;
+        string databaseName = databaseNameWithSuffix != null ? RenderLogEvent(databaseNameWithSuffix, _defaultLogEvent) : string.Empty;
 
         if (string.IsNullOrEmpty(connectionString))
             throw new NLogConfigurationException("Can not resolve MongoDB ConnectionString. Please make sure the ConnectionString property is set.");
@@ -450,6 +522,17 @@ public class MongoTarget : Target
             return collection;
         });
     }
+
+    private Layout GetCollectionNameWithSuffix(string suffix) => GetNameWithSuffix(_collectionName, suffix);
+
+    private Layout GetDatabaseNameWithSuffix(string suffix) => GetNameWithSuffix(_databaseName, suffix);
+
+    private static Layout GetNameWithSuffix(Layout layout, string suffix)
+        => !string.IsNullOrWhiteSpace(suffix)
+            ? layout != null
+                ? new SimpleLayout($"{layout}_{suffix}")
+                : null
+            : layout;
 
     private static string GetConnectionString(string connectionName)
     {
