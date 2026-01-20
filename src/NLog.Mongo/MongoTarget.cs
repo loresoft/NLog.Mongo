@@ -19,38 +19,9 @@ namespace NLog.Mongo;
 [Target("Mongo")]
 public class MongoTarget : Target
 {
-    private struct MongoConnectionKey : IEquatable<MongoConnectionKey>
-    {
-        private readonly string ConnectionString;
-        private readonly string CollectionName;
-        private readonly string DatabaseName;
+    private readonly record struct MongoConnectionKey(string ConnectionString, string CollectionName, string DatabaseName);
 
-        public MongoConnectionKey(string connectionString, string collectionName, string databaseName)
-        {
-            ConnectionString = connectionString ?? string.Empty;
-            CollectionName = collectionName ?? string.Empty;
-            DatabaseName = databaseName ?? string.Empty;
-        }
-
-        public bool Equals(MongoConnectionKey other)
-        {
-            return ConnectionString == other.ConnectionString
-                && CollectionName == other.CollectionName
-                && DatabaseName == other.DatabaseName;
-        }
-
-        public override int GetHashCode()
-        {
-            return ConnectionString.GetHashCode() ^ CollectionName.GetHashCode() ^ DatabaseName.GetHashCode();
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is MongoConnectionKey && Equals((MongoConnectionKey)obj);
-        }
-    }
-
-    private static readonly ConcurrentDictionary<MongoConnectionKey, IMongoCollection<BsonDocument>> _collectionCache = new ConcurrentDictionary<MongoConnectionKey, IMongoCollection<BsonDocument>>();
+    private static readonly ConcurrentDictionary<MongoConnectionKey, IMongoCollection<BsonDocument>> _collectionCache = new();
     private Func<AsyncLogEventInfo, BsonDocument> _createDocumentDelegate;
     private static readonly LogEventInfo _defaultLogEvent = NLog.LogEventInfo.CreateNullEvent();
 
@@ -72,7 +43,7 @@ public class MongoTarget : Target
     /// The fields.
     /// </value>
     [ArrayParameter(typeof(MongoField), "field")]
-    public IList<MongoField> Fields { get; private set; }
+    public IList<MongoField> Fields { get; }
 
     /// <summary>
     /// Gets the properties collection.
@@ -81,7 +52,7 @@ public class MongoTarget : Target
     /// The properties.
     /// </value>
     [ArrayParameter(typeof(MongoField), "property")]
-    public IList<MongoField> Properties { get; private set; }
+    public IList<MongoField> Properties { get; }
 
     /// <summary>
     /// Gets or sets the connection string name string.

@@ -1,3 +1,5 @@
+using Xunit;
+
 namespace NLog.Mongo.Tests;
 
 public class LoggerTest
