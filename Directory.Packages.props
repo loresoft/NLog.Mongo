@@ -6,7 +6,7 @@
   <ItemGroup>
     <PackageVersion Include="AwesomeAssertions" Version="9.6.0" />
     <PackageVersion Include="coverlet.collector" Version="10.0.1" />
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.9.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.10.0" />
     <PackageVersion Include="MinVer" Version="8.0.0" />
     <PackageVersion Include="MongoDB.Driver" Version="3.11.1" />
     <PackageVersion Include="NLog" Version="6.2.0" />
